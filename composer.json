@@ -1,0 +1,29 @@
+{
+    "name": "nawasara/vault",
+    "description": "Encrypted credential management for Nawasara services",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Nawasara\\Vault\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^12.0",
+        "spatie/laravel-permission": "^6.0",
+        "spatie/laravel-activitylog": "^4.9",
+        "nawasara/ui": "*",
+        "livewire/livewire": "^3.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Nawasara\\Vault\\VaultServiceProvider"
+            ],
+            "aliases": {
+                "Vault": "Nawasara\\Vault\\Facades\\Vault"
+            }
+        }
+    }
+}
