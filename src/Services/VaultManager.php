@@ -19,10 +19,10 @@ class VaultManager
             return null;
         }
 
-        // Update last accessed
-        $credential->update(['last_accessed_at' => now()]);
+        // Update last accessed (query builder — skip model events to avoid flooding activity log)
+        Credential::where('id', $credential->id)->update(['last_accessed_at' => now()]);
 
-        // Log access
+        // Log access to vault's own access log (not Spatie activity log)
         if (config('nawasara-vault.log_reads', true)) {
             $this->log($credential, 'read');
         }
