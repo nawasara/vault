@@ -39,13 +39,10 @@
                         @foreach ($group['instances'] as $instance)
                             <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50 dark:bg-neutral-700/50 text-sm">
                                 <span class="text-gray-700 dark:text-neutral-300">{{ $instance }}</span>
-                                <div class="flex items-center gap-2">
-                                    <button wire:click="openGroup('{{ $groupKey }}', '{{ $instance }}')"
-                                        class="text-blue-600 hover:underline text-xs">Edit</button>
-                                    <button wire:click="deleteInstance('{{ $groupKey }}', '{{ $instance }}')"
-                                        wire:confirm="Hapus semua credential untuk instance '{{ $instance }}'?"
-                                        class="text-red-500 hover:underline text-xs">Hapus</button>
-                                </div>
+                                <x-nawasara-ui::dropdown-menu-action :id="$instance" :items="[
+                                    ['type' => 'click', 'label' => 'Edit', 'wire:click' => 'openGroup(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-pencil'],
+                                    ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'deleteInstance(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-trash-2'],
+                                ]" />
                             </div>
                         @endforeach
                     </div>
