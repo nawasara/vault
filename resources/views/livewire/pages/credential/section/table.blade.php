@@ -67,7 +67,7 @@
     <x-nawasara-ui::modal wire:model="showModal"
         :title="config('nawasara-vault.groups.'.$editingGroup.'.label', $editingGroup)"
         :subtitle="$editingInstance ? '— '.$editingInstance : null">
-        <form wire:submit="save" class="space-y-4">
+        <form wire:submit="save" id="vault-credential-form" class="space-y-4">
             @if ($isNewInstance)
                 <div>
                     <x-nawasara-ui::form.input label="Nama Instance" placeholder="router-kantor-utama"
@@ -111,14 +111,14 @@
                     @endif
                 </div>
             @endforeach
-
-            <x-slot:footer>
-                <button type="button" wire:click="$set('showModal', false)"
-                    class="py-2.5 px-4 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white">
-                    Batal
-                </button>
-                <x-nawasara-ui::button type="submit" color="primary">Simpan</x-nawasara-ui::button>
-            </x-slot:footer>
         </form>
+
+        <x-slot:footer>
+            <button type="button" wire:click="$set('showModal', false)"
+                class="py-2.5 px-4 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white">
+                Batal
+            </button>
+            <x-nawasara-ui::button type="submit" form="vault-credential-form" color="primary">Simpan</x-nawasara-ui::button>
+        </x-slot:footer>
     </x-nawasara-ui::modal>
 </div>
