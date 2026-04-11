@@ -64,74 +64,61 @@
     </div>
 
     {{-- Modal Edit Credential --}}
-    @if ($showModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" wire:click.self="$set('showModal', false)">
-            <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-neutral-700">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-neutral-200">
-                        {{ config("nawasara-vault.groups.{$editingGroup}.label", $editingGroup) }}
-                        @if ($editingInstance)
-                            <span class="text-sm font-normal text-gray-500">— {{ $editingInstance }}</span>
-                        @endif
-                    </h3>
+    <x-nawasara-ui::modal wire:model="showModal"
+        :title="config('nawasara-vault.groups.'.$editingGroup.'.label', $editingGroup)"
+        :subtitle="$editingInstance ? '— '.$editingInstance : null">
+        <form wire:submit="save" class="space-y-4">
+            @if ($isNewInstance)
+                <div>
+                    <x-nawasara-ui::form.input label="Nama Instance" placeholder="router-kantor-utama"
+                        wire:model="editingInstance" useError errorVariable="editingInstance" />
+                    <p class="text-xs text-gray-500 mt-1">Identifier unik untuk instance ini</p>
                 </div>
+                <hr class="dark:border-neutral-700">
+            @endif
 
-                <form wire:submit="save" class="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
-                    {{-- Instance name for multi-instance --}}
-                    @if ($isNewInstance)
-                        <div>
-                            <x-nawasara-ui::form.input label="Nama Instance" placeholder="router-kantor-utama"
-                                wire:model="editingInstance" useError errorVariable="editingInstance" />
-                            <p class="text-xs text-gray-500 mt-1">Identifier unik untuk instance ini</p>
+            @foreach ($fields as $key => $field)
+                @php $fieldConfig = $field['config']; @endphp
+                <div>
+                    @if (($fieldConfig['type'] ?? 'text') === 'password')
+                        <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
+                        <div class="relative" x-data="{ show: false }">
+                            <input :type="show ? 'text' : 'password'"
+                                wire:model="fields.{{ $key }}.value"
+                                placeholder="{{ $fieldConfig['placeholder'] ?? '••••••••' }}"
+                                class="py-3 px-4 pe-12 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100" />
+                            <button type="button" @click="show = !show"
+                                class="absolute inset-y-0 end-0 flex items-center pe-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-neutral-300">
+                                <x-lucide-eye x-show="!show" class="size-4" />
+                                <x-lucide-eye-off x-show="show" class="size-4" x-cloak />
+                            </button>
                         </div>
-                        <hr class="dark:border-neutral-700">
+                        @if ($field['has_value'] && empty($field['value']))
+                            <p class="text-xs text-gray-400 mt-1">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
+                        @endif
+                    @elseif (($fieldConfig['type'] ?? 'text') === 'select')
+                        <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
+                        <x-nawasara-ui::form.select wire:model="fields.{{ $key }}.value" :placeholder="false">
+                            @foreach ($fieldConfig['options'] ?? [] as $optVal => $optLabel)
+                                <option value="{{ $optVal }}">{{ $optLabel }}</option>
+                            @endforeach
+                        </x-nawasara-ui::form.select>
+                    @else
+                        <x-nawasara-ui::form.input
+                            :label="$fieldConfig['label']"
+                            :placeholder="$fieldConfig['placeholder'] ?? ''"
+                            wire:model="fields.{{ $key }}.value" />
                     @endif
+                </div>
+            @endforeach
 
-                    @foreach ($fields as $key => $field)
-                        @php $fieldConfig = $field['config']; @endphp
-                        <div>
-                            @if (($fieldConfig['type'] ?? 'text') === 'password')
-                                <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
-                                <div class="relative" x-data="{ show: false }">
-                                    <input
-                                        :type="show ? 'text' : 'password'"
-                                        wire:model="fields.{{ $key }}.value"
-                                        placeholder="{{ $fieldConfig['placeholder'] ?? '••••••••' }}"
-                                        class="py-3 px-4 pe-12 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100" />
-                                    <button type="button" @click="show = !show"
-                                        class="absolute inset-y-0 end-0 flex items-center pe-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-neutral-300">
-                                        <x-lucide-eye x-show="!show" class="size-4" />
-                                        <x-lucide-eye-off x-show="show" class="size-4" x-cloak />
-                                    </button>
-                                </div>
-                                @if ($field['has_value'] && empty($field['value']))
-                                    <p class="text-xs text-gray-400 mt-1">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
-                                @endif
-                            @elseif (($fieldConfig['type'] ?? 'text') === 'select')
-                                <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
-                                <x-nawasara-ui::form.select wire:model="fields.{{ $key }}.value" :placeholder="false">
-                                    @foreach ($fieldConfig['options'] ?? [] as $optVal => $optLabel)
-                                        <option value="{{ $optVal }}">{{ $optLabel }}</option>
-                                    @endforeach
-                                </x-nawasara-ui::form.select>
-                            @else
-                                <x-nawasara-ui::form.input
-                                    :label="$fieldConfig['label']"
-                                    :placeholder="$fieldConfig['placeholder'] ?? ''"
-                                    wire:model="fields.{{ $key }}.value" />
-                            @endif
-                        </div>
-                    @endforeach
-
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" wire:click="$set('showModal', false)"
-                            class="py-2.5 px-4 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white">
-                            Batal
-                        </button>
-                        <x-nawasara-ui::button type="submit" color="primary">Simpan</x-nawasara-ui::button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endif
+            <x-slot:footer>
+                <button type="button" wire:click="$set('showModal', false)"
+                    class="py-2.5 px-4 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white">
+                    Batal
+                </button>
+                <x-nawasara-ui::button type="submit" color="primary">Simpan</x-nawasara-ui::button>
+            </x-slot:footer>
+        </form>
+    </x-nawasara-ui::modal>
 </div>
