@@ -13,6 +13,7 @@ class PermissionSeeder extends Seeder
         $permissions = [
             'vault.credential.view',
             'vault.credential.manage',
+            'vault.credential.reveal',
             'vault.log.view',
         ];
 

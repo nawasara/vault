@@ -40,8 +40,8 @@
                             <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50 dark:bg-neutral-700/50 text-sm">
                                 <span class="text-gray-700 dark:text-neutral-300">{{ $instance }}</span>
                                 <x-nawasara-ui::dropdown-menu-action :id="$instance" :items="[
-                                    ['type' => 'click', 'label' => 'Edit', 'wire:click' => 'openGroup(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-pencil'],
-                                    ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'deleteInstance(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-trash-2'],
+                                    ['type' => 'click', 'label' => 'Edit', 'wire:click' => 'openGroup(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-pencil', 'permission' => 'vault.credential.view'],
+                                    ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'deleteInstance(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-trash-2', 'confirm' => 'Yakin ingin menghapus instance ini?', 'permission' => 'vault.credential.manage'],
                                 ]" />
                             </div>
                         @endforeach
@@ -114,10 +114,7 @@
         </form>
 
         <x-slot:footer>
-            <button type="button" wire:click="$set('showModal', false)"
-                class="py-2.5 px-4 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white">
-                Batal
-            </button>
+            <x-nawasara-ui::button color="neutral" variant="outline" wire:click="$set('showModal', false)">Batal</x-nawasara-ui::button>
             <x-nawasara-ui::button type="submit" form="vault-credential-form" color="primary">Simpan</x-nawasara-ui::button>
         </x-slot:footer>
     </x-nawasara-ui::modal>
