@@ -11,7 +11,6 @@ use Nawasara\Vault\Facades\Vault;
 class Table extends Component
 {
     // Modal state
-    public bool $showModal = false;
     public string $editingGroup = '';
     public string $editingInstance = '';
     public bool $isNewInstance = false;
@@ -70,7 +69,7 @@ class Table extends Component
             ];
         }
 
-        $this->showModal = true;
+        $this->dispatch('modal-open:vault-credential-form');
     }
 
     public function addInstance(string $group)
@@ -93,7 +92,7 @@ class Table extends Component
             ];
         }
 
-        $this->showModal = true;
+        $this->dispatch('modal-open:vault-credential-form');
     }
 
     public function toggleReveal(string $key)
@@ -127,7 +126,7 @@ class Table extends Component
         }
 
         toaster_success('Credential berhasil disimpan');
-        $this->showModal = false;
+        $this->dispatch('modal-close:vault-credential-form');
         unset($this->groups);
     }
 

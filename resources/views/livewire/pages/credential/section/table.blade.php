@@ -40,18 +40,20 @@
                             <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50 dark:bg-neutral-700/50 text-sm">
                                 <span class="text-gray-700 dark:text-neutral-300">{{ $instance }}</span>
                                 <x-nawasara-ui::dropdown-menu-action :id="$instance" :items="[
-                                    ['type' => 'click', 'label' => 'Edit', 'wire:click' => 'openGroup(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-pencil', 'permission' => 'vault.credential.view'],
+                                    ['type' => 'click', 'label' => 'Edit', 'wire:click' => 'openGroup(\'' . $groupKey . '\', \'' . $instance . '\')', 'modal' => 'vault-credential-form', 'icon' => 'lucide-pencil', 'permission' => 'vault.credential.view'],
                                     ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'deleteInstance(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-trash-2', 'confirm' => 'Yakin ingin menghapus instance ini?', 'permission' => 'vault.credential.manage'],
                                 ]" />
                             </div>
                         @endforeach
                     </div>
                     <button wire:click="addInstance('{{ $groupKey }}')"
+                        @click="$dispatch('open-modal', {id: 'vault-credential-form', loading: true})"
                         class="w-full py-2 text-sm text-center text-blue-600 hover:bg-blue-50 rounded-lg border border-dashed border-blue-300 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:border-blue-800 transition-colors">
                         + Tambah Instance
                     </button>
                 @else
                     <button wire:click="openGroup('{{ $groupKey }}')"
+                        @click="$dispatch('open-modal', {id: 'vault-credential-form', loading: true})"
                         class="w-full py-2.5 text-sm font-medium text-center rounded-lg border transition-colors
                         {{ $configured
                             ? 'border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-700'
@@ -64,7 +66,7 @@
     </div>
 
     {{-- Modal Edit Credential --}}
-    <x-nawasara-ui::modal wire:model="showModal"
+    <x-nawasara-ui::modal id="vault-credential-form"
         :title="config('nawasara-vault.groups.'.$editingGroup.'.label', $editingGroup)"
         :subtitle="$editingInstance ? '— '.$editingInstance : null">
         <form wire:submit="save" id="vault-credential-form" class="space-y-4">
@@ -114,7 +116,7 @@
         </form>
 
         <x-slot:footer>
-            <x-nawasara-ui::button color="neutral" variant="outline" wire:click="$set('showModal', false)">Batal</x-nawasara-ui::button>
+            <x-nawasara-ui::button color="neutral" variant="outline" @click="$dispatch('close-modal', 'vault-credential-form')">Batal</x-nawasara-ui::button>
             <x-nawasara-ui::button type="submit" form="vault-credential-form" color="primary">Simpan</x-nawasara-ui::button>
         </x-slot:footer>
     </x-nawasara-ui::modal>
