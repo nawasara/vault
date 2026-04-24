@@ -28,6 +28,7 @@ return [
         'cloudflare' => [
             'label' => 'Cloudflare',
             'icon' => 'lucide-cloud',
+            'test' => \Nawasara\Cloudflare\Services\CloudflareClient::class.'@testConnection',
             'fields' => [
                 'api_token' => ['label' => 'API Token', 'type' => 'password'],
                 'account_id' => ['label' => 'Account ID', 'type' => 'text'],
@@ -49,6 +50,7 @@ return [
             'label' => 'WHM / cPanel',
             'icon' => 'lucide-hard-drive',
             'multi_instance' => true,
+            'test' => \Nawasara\Whm\Services\WhmClient::class.'@testConnection',
             'fields' => [
                 'host' => ['label' => 'Host', 'type' => 'text', 'placeholder' => 'https://whm.kominfo.go.id:2087'],
                 'username' => ['label' => 'Username', 'type' => 'text'],

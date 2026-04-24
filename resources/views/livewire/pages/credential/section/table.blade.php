@@ -33,16 +33,19 @@
                 </div>
 
                 {{-- Actions --}}
+                @php $hasTest = ! empty($config['test']); @endphp
+
                 @if ($isMulti)
                     {{-- Multi-instance: show instance list --}}
                     <div class="space-y-1.5 mb-3">
                         @foreach ($group['instances'] as $instance)
                             <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50 dark:bg-neutral-700/50 text-sm">
                                 <span class="text-gray-700 dark:text-neutral-300">{{ $instance }}</span>
-                                <x-nawasara-ui::dropdown-menu-action :id="$instance" :items="[
+                                <x-nawasara-ui::dropdown-menu-action :id="$instance" :items="array_filter([
                                     ['type' => 'click', 'label' => 'Edit', 'wire:click' => 'openGroup(\'' . $groupKey . '\', \'' . $instance . '\')', 'modal' => 'vault-credential-form', 'icon' => 'lucide-pencil', 'permission' => 'vault.credential.view'],
+                                    $hasTest ? ['type' => 'click', 'label' => 'Test Connection', 'wire:click' => 'testConnection(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-plug', 'permission' => 'vault.credential.view'] : null,
                                     ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'deleteInstance(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-trash-2', 'confirm' => 'Yakin ingin menghapus instance ini?', 'permission' => 'vault.credential.manage'],
-                                ]" />
+                                ])" />
                             </div>
                         @endforeach
                     </div>
@@ -52,14 +55,23 @@
                         + Tambah Instance
                     </button>
                 @else
-                    <button wire:click="openGroup('{{ $groupKey }}')"
-                        @click="$dispatch('open-modal', {id: 'vault-credential-form', loading: true})"
-                        class="w-full py-2.5 text-sm font-medium text-center rounded-lg border transition-colors
-                        {{ $configured
-                            ? 'border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-700'
-                            : 'border-green-300 text-green-700 bg-green-50 hover:bg-green-100 dark:border-green-800 dark:text-green-400 dark:bg-green-900/20 dark:hover:bg-green-900/30' }}">
-                        {{ $configured ? 'Edit Credential' : 'Setup Credential' }}
-                    </button>
+                    <div class="flex gap-2">
+                        <button wire:click="openGroup('{{ $groupKey }}')"
+                            @click="$dispatch('open-modal', {id: 'vault-credential-form', loading: true})"
+                            class="flex-1 py-2.5 text-sm font-medium text-center rounded-lg border transition-colors
+                            {{ $configured
+                                ? 'border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-700'
+                                : 'border-green-300 text-green-700 bg-green-50 hover:bg-green-100 dark:border-green-800 dark:text-green-400 dark:bg-green-900/20 dark:hover:bg-green-900/30' }}">
+                            {{ $configured ? 'Edit Credential' : 'Setup Credential' }}
+                        </button>
+                        @if ($hasTest && $configured)
+                            <button wire:click="testConnection('{{ $groupKey }}')" type="button"
+                                title="Test Connection"
+                                class="px-3 py-2.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-700 transition-colors">
+                                <x-lucide-plug class="size-4" wire:loading.class="animate-pulse" wire:target="testConnection('{{ $groupKey }}')" />
+                            </button>
+                        @endif
+                    </div>
                 @endif
             </div>
         @endforeach

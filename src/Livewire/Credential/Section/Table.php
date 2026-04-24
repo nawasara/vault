@@ -28,14 +28,22 @@ class Table extends Component
         foreach ($groups as $key => $config) {
             $isMulti = $config['multi_instance'] ?? false;
             $instances = $isMulti ? Vault::instances($key) : [null];
-            $storedCount = Vault::storedCount($key);
             $totalFields = count($config['fields'] ?? []);
+
+            if ($isMulti) {
+                // Multi-instance: configured jika minimal 1 instance lengkap.
+                $stored = collect($instances)->sum(fn ($inst) => Vault::storedCount($key, $inst));
+                $configured = collect($instances)->contains(fn ($inst) => Vault::isConfigured($key, $inst));
+            } else {
+                $stored = Vault::storedCount($key);
+                $configured = $stored >= $totalFields;
+            }
 
             $result[$key] = [
                 'config' => $config,
-                'stored' => $storedCount,
+                'stored' => $stored,
                 'total' => $totalFields,
-                'configured' => $storedCount >= $totalFields,
+                'configured' => $configured,
                 'multi_instance' => $isMulti,
                 'instances' => $instances,
             ];
@@ -128,6 +136,49 @@ class Table extends Component
         toaster_success('Credential berhasil disimpan');
         $this->dispatch('modal-close:vault-credential-form');
         unset($this->groups);
+    }
+
+    /**
+     * Test connection for a group (optionally per-instance).
+     * Calls the handler declared in config (e.g. WhmClient@testConnection).
+     */
+    public function testConnection(string $group, ?string $instance = null): void
+    {
+        Gate::authorize('vault.credential.view');
+
+        $handler = config("nawasara-vault.groups.{$group}.test");
+
+        if (! $handler) {
+            $this->toast('error', 'Test connection belum tersedia untuk service ini');
+            return;
+        }
+
+        try {
+            $result = app()->call($handler, ['instance' => $instance]);
+
+            if (($result['success'] ?? false) === true) {
+                $this->toast('success', $result['message'] ?? 'Koneksi berhasil');
+            } else {
+                $this->toast('error', $result['message'] ?? 'Koneksi gagal');
+            }
+        } catch (\Throwable $e) {
+            $this->toast('error', 'Error: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Show toast via browser event (bypass session flash — works in AJAX context).
+     * Uses global window.Toast from nawasara-toaster.
+     */
+    protected function toast(string $type, string $message): void
+    {
+        $js = sprintf(
+            'window.Toast && window.Toast[%s] && window.Toast[%s](%s);',
+            json_encode($type),
+            json_encode($type),
+            json_encode($message)
+        );
+        $this->js($js);
     }
 
     public function deleteInstance(string $group, string $instance)
