@@ -55,6 +55,11 @@ return [
                 'host' => ['label' => 'Host', 'type' => 'text', 'placeholder' => 'https://whm.kominfo.go.id:2087'],
                 'username' => ['label' => 'Username', 'type' => 'text'],
                 'api_token' => ['label' => 'API Token', 'type' => 'password'],
+                'role' => ['label' => 'Server Role', 'type' => 'select', 'options' => [
+                    'hosting' => 'Hosting (cPanel websites)',
+                    'mail' => 'Mail (Email server)',
+                    'both' => 'Both (multi-purpose)',
+                ]],
             ],
         ],
 
