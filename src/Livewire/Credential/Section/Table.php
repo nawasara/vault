@@ -36,7 +36,7 @@ class Table extends Component
                 $configured = collect($instances)->contains(fn ($inst) => Vault::isConfigured($key, $inst));
             } else {
                 $stored = Vault::storedCount($key);
-                $configured = $stored >= $totalFields;
+                $configured = Vault::isConfigured($key);
             }
 
             $result[$key] = [
@@ -133,7 +133,7 @@ class Table extends Component
             }
         }
 
-        toaster_success('Credential berhasil disimpan');
+        $this->toast('success', 'Credential berhasil disimpan');
         $this->dispatch('modal-close:vault-credential-form');
         unset($this->groups);
     }
@@ -193,7 +193,7 @@ class Table extends Component
             Vault::delete($group, $credential->key, $instance);
         }
 
-        toaster_success("Instance \"{$instance}\" berhasil dihapus");
+        $this->toast('success', "Instance \"{$instance}\" berhasil dihapus");
         unset($this->groups);
     }
 

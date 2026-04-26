@@ -105,13 +105,24 @@ class VaultManager
             return false;
         }
 
+        // Required = field tanpa flag 'optional' => true. Optional fields
+        // tidak dihitung untuk status "lengkap".
+        $requiredKeys = array_keys(array_filter(
+            $fields,
+            fn ($f) => empty($f['optional']),
+        ));
+
+        if (empty($requiredKeys)) {
+            return true;
+        }
+
         $stored = Credential::query()
             ->where('group', $group)
             ->forInstance($instance)
-            ->whereIn('key', array_keys($fields))
+            ->whereIn('key', $requiredKeys)
             ->count();
 
-        return $stored >= count($fields);
+        return $stored >= count($requiredKeys);
     }
 
     public function storedCount(string $group, ?string $instance = null): int

@@ -94,7 +94,17 @@
             @foreach ($fields as $key => $field)
                 @php $fieldConfig = $field['config']; @endphp
                 <div>
-                    @if (($fieldConfig['type'] ?? 'text') === 'password')
+                    @if (($fieldConfig['type'] ?? 'text') === 'textarea')
+                        <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
+                        <textarea
+                            wire:model="fields.{{ $key }}.value"
+                            placeholder="{{ $fieldConfig['placeholder'] ?? '' }}"
+                            rows="{{ $fieldConfig['rows'] ?? 6 }}"
+                            class="py-3 px-4 block w-full border border-gray-300 rounded-md text-sm font-mono transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100"></textarea>
+                        @if ($field['has_value'] && empty($field['value']))
+                            <p class="text-xs text-gray-400 mt-1">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
+                        @endif
+                    @elseif (($fieldConfig['type'] ?? 'text') === 'password')
                         <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
                         <div class="relative" x-data="{ show: false }">
                             <input :type="show ? 'text' : 'password'"
