@@ -94,13 +94,27 @@ class Table extends Component
 
         foreach ($config['fields'] ?? [] as $key => $fieldConfig) {
             $this->fields[$key] = [
-                'value' => '',
+                'value' => $this->defaultValueFor($fieldConfig),
                 'config' => $fieldConfig,
                 'has_value' => false,
             ];
         }
 
         $this->dispatch('modal-open:vault-credential-form');
+    }
+
+    /**
+     * Pre-fill value untuk field baru. Buat select dengan options, pakai
+     * key pertama supaya Livewire wire:model align dengan option yang
+     * browser tampilkan secara visual. Field text/password biarkan empty.
+     */
+    protected function defaultValueFor(array $fieldConfig): string
+    {
+        if (($fieldConfig['type'] ?? 'text') === 'select') {
+            $options = $fieldConfig['options'] ?? [];
+            return (string) (array_key_first($options) ?? '');
+        }
+        return '';
     }
 
     public function toggleReveal(string $key)
