@@ -39,6 +39,7 @@ return [
         'proxmox' => [
             'label' => 'Proxmox VE',
             'icon' => 'lucide-server',
+            'test' => \Nawasara\Proxmox\Services\ProxmoxClient::class.'@testConnection',
             'fields' => [
                 'host' => ['label' => 'Host', 'type' => 'text', 'placeholder' => 'https://pve.kominfo.go.id:8006'],
                 'token_id' => ['label' => 'Token ID', 'type' => 'text', 'placeholder' => 'user@pve!token-name'],
