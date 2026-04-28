@@ -88,6 +88,25 @@ return [
             ],
         ],
 
+        'smtp' => [
+            'label' => 'SMTP Email',
+            'icon' => 'lucide-mail',
+            'test' => \Nawasara\Notification\Channels\EmailChannel::class.'@testFromVault',
+            'fields' => [
+                'host' => ['label' => 'SMTP Host', 'type' => 'text', 'placeholder' => 'smtp.gmail.com'],
+                'port' => ['label' => 'SMTP Port', 'type' => 'text', 'placeholder' => '587'],
+                'encryption' => ['label' => 'Encryption', 'type' => 'select', 'options' => [
+                    'tls' => 'TLS (587)',
+                    'ssl' => 'SSL (465)',
+                    'none' => 'None (25)',
+                ]],
+                'username' => ['label' => 'Username', 'type' => 'text'],
+                'password' => ['label' => 'Password', 'type' => 'password'],
+                'from_address' => ['label' => 'From Address', 'type' => 'text', 'placeholder' => 'noreply@kominfo.go.id'],
+                'from_name' => ['label' => 'From Name', 'type' => 'text', 'placeholder' => 'Nawasara Kominfo Ponorogo', 'optional' => true],
+            ],
+        ],
+
         'wazuh' => [
             'label' => 'Wazuh SIEM',
             'icon' => 'lucide-shield',
