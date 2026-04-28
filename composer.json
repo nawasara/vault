@@ -1,8 +1,28 @@
 {
     "name": "nawasara/vault",
-    "description": "Encrypted credential management for Nawasara services",
+    "description": "Encrypted credential management for the Nawasara superapp framework — service groups, multi-instance support, access log, and one-click test connection.",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "nawasara",
+        "laravel",
+        "vault",
+        "credentials",
+        "encryption",
+        "secrets",
+        "audit"
+    ],
+    "authors": [
+        {
+            "name": "Pringgo J. Saputro",
+            "email": "odyinggo@gmail.com",
+            "role": "Lead Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/nawasara/vault/issues",
+        "source": "https://github.com/nawasara/vault"
+    },
     "autoload": {
         "psr-4": {
             "Nawasara\\Vault\\": "src/"
@@ -25,5 +45,7 @@
                 "Vault": "Nawasara\\Vault\\Facades\\Vault"
             }
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
