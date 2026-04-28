@@ -17,6 +17,7 @@ return [
         'keycloak' => [
             'label' => 'Keycloak SSO',
             'icon' => 'lucide-key-round',
+            'test' => \Nawasara\Keycloak\Services\KeycloakClient::class.'@testConnection',
             'fields' => [
                 'base_url' => ['label' => 'Base URL', 'type' => 'text', 'placeholder' => 'https://sso.kominfo.go.id'],
                 'realm' => ['label' => 'Realm', 'type' => 'text', 'placeholder' => 'master'],
