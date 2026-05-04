@@ -119,6 +119,22 @@ return [
             ],
         ],
 
+        'sso' => [
+            'label' => 'Single Sign-On (SSO)',
+            'icon' => 'lucide-log-in',
+            'test' => \Nawasara\Core\Services\SsoService::class.'@testConnection',
+            'fields' => [
+                'driver' => ['label' => 'Driver', 'type' => 'select', 'options' => [
+                    'keycloak' => 'Keycloak',
+                ]],
+                'base_url' => ['label' => 'Base URL', 'type' => 'text', 'placeholder' => 'https://sso.kominfo.go.id'],
+                'realm' => ['label' => 'Realm (Keycloak)', 'type' => 'text', 'placeholder' => 'master', 'optional' => true],
+                'client_id' => ['label' => 'Client ID', 'type' => 'text'],
+                'client_secret' => ['label' => 'Client Secret', 'type' => 'password'],
+                'redirect_uri' => ['label' => 'Redirect URI', 'type' => 'text', 'placeholder' => 'https://nawasara.kominfo.go.id/sso/callback'],
+            ],
+        ],
+
         'zoom' => [
             'label' => 'Zoom',
             'icon' => 'lucide-video',
