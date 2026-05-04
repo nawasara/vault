@@ -122,6 +122,7 @@ return [
         'zoom' => [
             'label' => 'Zoom',
             'icon' => 'lucide-video',
+            'test' => \Nawasara\Zoom\Services\ZoomClient::class.'@testConnection',
             'fields' => [
                 'account_id' => ['label' => 'Account ID', 'type' => 'text'],
                 'client_id' => ['label' => 'Client ID', 'type' => 'text'],
