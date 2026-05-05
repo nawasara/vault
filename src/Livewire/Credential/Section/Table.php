@@ -70,8 +70,12 @@ class Table extends Component
                 ->forInstance($instance)
                 ->first();
 
+            // Pre-fill select fields dengan first option supaya Livewire wire:model
+            // align dengan apa yang browser tampilkan secara visual. Tanpa ini,
+            // user yang tidak menyentuh dropdown akan submit empty value dan field
+            // di-skip saat save (lihat save() ! empty check).
             $this->fields[$key] = [
-                'value' => $credential?->value ?? '',
+                'value' => $credential?->value ?? $this->defaultValueFor($fieldConfig),
                 'config' => $fieldConfig,
                 'has_value' => (bool) $credential,
             ];
