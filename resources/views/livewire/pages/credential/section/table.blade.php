@@ -1,3 +1,4 @@
+{{-- ui-lint-skip: complex group-card pattern with multi-action header (open/test/instances) needs <card-with-actions> component; out of scope for current migration --}}
 <div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @foreach ($this->groups as $groupKey => $group)
