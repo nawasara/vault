@@ -66,11 +66,13 @@
                             {{ $configured ? 'Edit Credential' : 'Setup Credential' }}
                         </button>
                         @if ($hasTest && $configured)
-                            <button wire:click="testConnection('{{ $groupKey }}')" type="button"
-                                title="Test Connection"
-                                class="px-3 py-2.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-700 transition-colors">
-                                <x-lucide-plug class="size-4" wire:loading.class="animate-pulse" wire:target="testConnection('{{ $groupKey }}')" />
-                            </button>
+                            <x-nawasara-ui::tooltip text="Test koneksi" placement="top">
+                                <button wire:click="testConnection('{{ $groupKey }}')" type="button"
+                                    aria-label="Test koneksi"
+                                    class="px-3 py-2.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-700 transition-colors">
+                                    <x-lucide-plug class="size-4" wire:loading.class="animate-pulse" wire:target="testConnection('{{ $groupKey }}')" />
+                                </button>
+                            </x-nawasara-ui::tooltip>
                         @endif
                     </div>
                 @endif
@@ -101,7 +103,7 @@
                             wire:model="fields.{{ $key }}.value"
                             placeholder="{{ $fieldConfig['placeholder'] ?? '' }}"
                             rows="{{ $fieldConfig['rows'] ?? 6 }}"
-                            class="py-3 px-4 block w-full border border-gray-300 rounded-md text-sm font-mono transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100"></textarea>
+                            class="py-3 px-4 block w-full border border-gray-300 rounded-md text-sm font-mono transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100"></textarea>
                         @if ($field['has_value'] && empty($field['value']))
                             <p class="text-xs text-gray-400 mt-1">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
                         @endif
@@ -111,8 +113,10 @@
                             <input :type="show ? 'text' : 'password'"
                                 wire:model="fields.{{ $key }}.value"
                                 placeholder="{{ $fieldConfig['placeholder'] ?? '••••••••' }}"
-                                class="py-3 px-4 pe-12 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100" />
+                                class="py-3 px-4 pe-12 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100" />
                             <button type="button" @click="show = !show"
+                                aria-label="Tampilkan / sembunyikan password"
+                                :title="show ? 'Sembunyikan' : 'Tampilkan'"
                                 class="absolute inset-y-0 end-0 flex items-center pe-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-neutral-300">
                                 <x-lucide-eye x-show="!show" class="size-4" />
                                 <x-lucide-eye-off x-show="show" class="size-4" x-cloak />
