@@ -27,7 +27,7 @@
                             Configured
                         </span>
                     @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                             Belum lengkap
                         </span>
                     @endif
@@ -52,7 +52,7 @@
                     </div>
                     <button wire:click="addInstance('{{ $groupKey }}')"
                         @click="$dispatch('open-modal', {id: 'vault-credential-form', loading: true})"
-                        class="w-full py-2 text-sm text-center text-blue-600 hover:bg-blue-50 rounded-lg border border-dashed border-blue-300 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:border-blue-800 transition-colors">
+                        class="w-full py-2 text-sm text-center text-emerald-700 hover:bg-emerald-50 rounded-lg border border-dashed border-emerald-300 dark:text-emerald-400 dark:hover:bg-emerald-900/20 dark:border-emerald-800 transition-colors">
                         + Tambah Instance
                     </button>
                 @else
