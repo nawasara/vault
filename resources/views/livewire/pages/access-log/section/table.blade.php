@@ -55,8 +55,12 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-neutral-400">
-                        Belum ada access log.
+                    <td colspan="6">
+                        <x-nawasara-ui::empty-state
+                            icon="lucide-file-key"
+                            title="Belum ada access log"
+                            description="Setiap kali credential diakses (read/decrypt), akan tercatat di sini untuk audit trail."
+                            inline />
                     </td>
                 </tr>
             @endforelse
