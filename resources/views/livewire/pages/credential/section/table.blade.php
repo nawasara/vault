@@ -23,13 +23,9 @@
                         </div>
                     </div>
                     @if ($configured)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                            Configured
-                        </span>
+                        <x-nawasara-ui::badge color="success">Configured</x-nawasara-ui::badge>
                     @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                            Belum lengkap
-                        </span>
+                        <x-nawasara-ui::badge color="warning">Belum lengkap</x-nawasara-ui::badge>
                     @endif
                 </div>
 

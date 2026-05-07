@@ -66,17 +66,19 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         @php
-                            $actionClass = match($item->action) {
-                                'read' => 'bg-gray-100 text-gray-600 dark:bg-neutral-700 dark:text-neutral-400',
-                                'create' => 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                'update' => 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                                'delete' => 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                default => 'bg-gray-100 text-gray-600',
+                            // Vault audit action color tokens. read = neutral
+                            // (passive view); create = success; update = blue
+                            // (informational); delete = danger.
+                            $actionColor = match($item->action) {
+                                'create' => 'success',
+                                'update' => 'blue',
+                                'delete' => 'danger',
+                                default => 'neutral',
                             };
                         @endphp
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $actionClass }}">
+                        <x-nawasara-ui::badge :color="$actionColor">
                             {{ ucfirst($item->action) }}
-                        </span>
+                        </x-nawasara-ui::badge>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-neutral-200">
                         @if ($item->accessor === 'user')
