@@ -4,8 +4,9 @@
             :items="[['label' => 'Vault', 'url' => '#'], ['label' => 'Access Log']]" />
     </x-slot>
 
+    {{-- Title + time-window hoisted into section component (which owns
+         the reactive state). Index is a shell. --}}
     <x-nawasara-ui::page.container>
-        <x-nawasara-ui::page.title>Vault Access Log</x-nawasara-ui::page.title>
         @livewire('nawasara-vault.access-log.section.table')
     </x-nawasara-ui::page.container>
 </div>
