@@ -56,6 +56,7 @@ return [
             'fields' => [
                 'host' => ['label' => 'Host', 'type' => 'text', 'placeholder' => 'https://whm.kominfo.go.id:2087'],
                 'webmail_host' => ['label' => 'Webmail Public Host (opsional)', 'type' => 'text', 'placeholder' => 'https://webmail.kominfo.go.id:2096', 'optional' => true],
+                'cpanel_host' => ['label' => 'cPanel Public Host (opsional)', 'type' => 'text', 'placeholder' => 'https://cpserv.kominfo.go.id:2083', 'optional' => true],
                 'username' => ['label' => 'Username', 'type' => 'text'],
                 'api_token' => ['label' => 'API Token', 'type' => 'password'],
                 'role' => ['label' => 'Server Role', 'type' => 'select', 'options' => [
