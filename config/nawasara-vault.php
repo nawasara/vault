@@ -83,6 +83,30 @@ return [
             ],
         ],
 
+        'teleport' => [
+            'label' => 'Teleport (SSH SSO)',
+            'icon' => 'lucide-server',
+            'test' => \Nawasara\Teleport\Services\TeleportClient::class.'@testConnection',
+            'fields' => [
+                'bridge_url' => [
+                    'label' => 'Bridge URL',
+                    'type' => 'text',
+                    'placeholder' => 'http://127.0.0.1:9181',
+                ],
+                'bridge_secret' => [
+                    'label' => 'Bridge Secret (HMAC)',
+                    'type' => 'password',
+                    'placeholder' => 'shared 32-byte hex secret',
+                ],
+                'proxy_addr' => [
+                    'label' => 'Teleport Proxy Address (display only)',
+                    'type' => 'text',
+                    'placeholder' => 'teleport.kominfo.go.id:443',
+                    'optional' => true,
+                ],
+            ],
+        ],
+
         'uptime-kuma' => [
             'label' => 'Uptime Kuma',
             'icon' => 'lucide-activity',
