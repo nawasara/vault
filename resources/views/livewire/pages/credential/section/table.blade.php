@@ -91,7 +91,10 @@
             @endif
 
             @foreach ($fields as $key => $field)
-                @php $fieldConfig = $field['config']; @endphp
+                {{-- Defensive: kalau Livewire dehydrate kehilangan 'config' key,
+                     fall back ke config() lookup. Shouldn't normally happen
+                     but guards against array shape drift between hydrations. --}}
+                @php $fieldConfig = $field['config'] ?? config("nawasara-vault.groups.{$editingGroup}.fields.{$key}", []); @endphp
                 <div>
                     @if (($fieldConfig['type'] ?? 'text') === 'textarea')
                         <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
