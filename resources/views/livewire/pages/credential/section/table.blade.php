@@ -91,27 +91,39 @@
             @endif
 
             @foreach ($fields as $key => $field)
-                {{-- Defensive: kalau Livewire dehydrate kehilangan 'config' key,
-                     fall back ke config() lookup. Shouldn't normally happen
-                     but guards against array shape drift between hydrations. --}}
-                @php $fieldConfig = $field['config'] ?? config("nawasara-vault.groups.{$editingGroup}.fields.{$key}", []); @endphp
+                {{-- Defensive resolution + safe-access of every $fieldConfig key.
+                     Two compounding traps:
+                     (1) Livewire 3 dehydrate sometimes drops the 'config' key
+                         from $fields[*], so fall back to config() lookup.
+                     (2) Even after fallback, individual sub-keys like 'label'
+                         may be missing if the package config drifts from the
+                         blade's expectations. Pre-extract with sane defaults
+                         so blade renders something usable instead of crashing. --}}
+                @php
+                    $fieldConfig = $field['config'] ?? config("nawasara-vault.groups.{$editingGroup}.fields.{$key}", []);
+                    $label = $fieldConfig['label'] ?? \Illuminate\Support\Str::headline($key);
+                    $type = $fieldConfig['type'] ?? 'text';
+                    $placeholder = $fieldConfig['placeholder'] ?? '';
+                    $options = $fieldConfig['options'] ?? [];
+                    $rows = $fieldConfig['rows'] ?? 6;
+                @endphp
                 <div>
-                    @if (($fieldConfig['type'] ?? 'text') === 'textarea')
-                        <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
+                    @if ($type === 'textarea')
+                        <x-nawasara-ui::form.label :value="$label" />
                         <textarea
                             wire:model="fields.{{ $key }}.value"
-                            placeholder="{{ $fieldConfig['placeholder'] ?? '' }}"
-                            rows="{{ $fieldConfig['rows'] ?? 6 }}"
+                            placeholder="{{ $placeholder }}"
+                            rows="{{ $rows }}"
                             class="py-3 px-4 block w-full border border-gray-300 rounded-md text-sm font-mono transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100"></textarea>
-                        @if ($field['has_value'] && empty($field['value']))
+                        @if (! empty($field['has_value']) && empty($field['value']))
                             <p class="text-xs text-gray-400 mt-1">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
                         @endif
-                    @elseif (($fieldConfig['type'] ?? 'text') === 'password')
-                        <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
+                    @elseif ($type === 'password')
+                        <x-nawasara-ui::form.label :value="$label" />
                         <div class="relative" x-data="{ show: false }">
                             <input :type="show ? 'text' : 'password'"
                                 wire:model="fields.{{ $key }}.value"
-                                placeholder="{{ $fieldConfig['placeholder'] ?? '••••••••' }}"
+                                placeholder="{{ $placeholder ?: '••••••••' }}"
                                 class="py-3 px-4 pe-12 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100" />
                             <button type="button" @click="show = !show"
                                 aria-label="Tampilkan / sembunyikan password"
@@ -121,20 +133,20 @@
                                 <x-lucide-eye-off x-show="show" class="size-4" x-cloak />
                             </button>
                         </div>
-                        @if ($field['has_value'] && empty($field['value']))
+                        @if (! empty($field['has_value']) && empty($field['value']))
                             <p class="text-xs text-gray-400 mt-1">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
                         @endif
-                    @elseif (($fieldConfig['type'] ?? 'text') === 'select')
-                        <x-nawasara-ui::form.label :value="$fieldConfig['label']" />
+                    @elseif ($type === 'select')
+                        <x-nawasara-ui::form.label :value="$label" />
                         <x-nawasara-ui::form.select wire:model="fields.{{ $key }}.value" :placeholder="false">
-                            @foreach ($fieldConfig['options'] ?? [] as $optVal => $optLabel)
+                            @foreach ($options as $optVal => $optLabel)
                                 <option value="{{ $optVal }}">{{ $optLabel }}</option>
                             @endforeach
                         </x-nawasara-ui::form.select>
                     @else
                         <x-nawasara-ui::form.input
-                            :label="$fieldConfig['label']"
-                            :placeholder="$fieldConfig['placeholder'] ?? ''"
+                            :label="$label"
+                            :placeholder="$placeholder"
                             wire:model="fields.{{ $key }}.value" />
                     @endif
                 </div>
