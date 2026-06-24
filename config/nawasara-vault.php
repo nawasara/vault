@@ -192,6 +192,25 @@ return [
                 'password' => ['label' => 'Password', 'type' => 'password'],
             ],
         ],
+
+        'database-monitor' => [
+            'label' => 'Database Monitor',
+            'icon' => 'lucide-database',
+            'test' => \Nawasara\DatabaseMonitor\Services\MysqlConnection::class.'@testConnection',
+            'fields' => [
+                'host' => ['label' => 'Host', 'type' => 'text', 'placeholder' => 'mysql.kominfo.lan'],
+                'port' => ['label' => 'Port', 'type' => 'text', 'placeholder' => '3306'],
+                'database' => ['label' => 'Default DB (opsional, kosongkan untuk server-wide)', 'type' => 'text', 'placeholder' => '', 'optional' => true],
+                'username' => ['label' => 'Username', 'type' => 'text', 'placeholder' => 'nawasara_monitor'],
+                'password' => ['label' => 'Password', 'type' => 'password'],
+                // Admin (Fase F) — credential terpisah dengan privilege CREATE/DROP database
+                // + GRANT/REVOKE. KOSONGKAN kalau tidak pakai administration mode. Disimpan
+                // sebagai field optional di group yang sama supaya operator lihat semua
+                // konfigurasi satu tempat — bukan group terpisah yang gampang lupa.
+                'admin_username' => ['label' => 'Admin Username (Fase F, opsional)', 'type' => 'text', 'placeholder' => 'nawasara_admin', 'optional' => true],
+                'admin_password' => ['label' => 'Admin Password (Fase F, opsional)', 'type' => 'password', 'optional' => true],
+            ],
+        ],
     ],
 
     /*
