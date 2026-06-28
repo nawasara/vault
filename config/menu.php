@@ -4,8 +4,9 @@ $prefix = 'nawasara-vault';
 
 return [
     [
-        'label' => 'Vault Credentials',
+        'label' => 'Vault',
         'icon' => 'lucide-lock',
+        'group' => 'Keamanan',
         'url' => '',
         'permission' => 'vault.credential.view',
         'submenu' => [
