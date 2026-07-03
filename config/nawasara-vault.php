@@ -48,6 +48,19 @@ return [
             ],
         ],
 
+        'opnsense' => [
+            'label' => 'OPNsense Firewall',
+            'icon' => 'lucide-shield',
+            'multi_instance' => true,
+            'test' => \Nawasara\Opnsense\Services\OPNsenseClient::class.'@testConnection',
+            'fields' => [
+                'host' => ['label' => 'Host', 'type' => 'text', 'placeholder' => 'https://10.10.10.1:64443'],
+                'api_key' => ['label' => 'API Key', 'type' => 'text'],
+                'api_secret' => ['label' => 'API Secret', 'type' => 'password'],
+                'verify_ssl' => ['label' => 'Verify SSL', 'type' => 'select', 'options' => ['false' => 'Tidak (self-signed)', 'true' => 'Ya']],
+            ],
+        ],
+
         'whm' => [
             'label' => 'WHM / cPanel',
             'icon' => 'lucide-hard-drive',
