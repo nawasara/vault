@@ -117,6 +117,17 @@ return [
                     'placeholder' => 'teleport.kominfo.go.id:443',
                     'optional' => true,
                 ],
+                'public_ws_url' => [
+                    'label' => 'Public WebSocket Base URL',
+                    'type' => 'text',
+                    'placeholder' => 'wss://nawasara.kominfo.go.id/teleport-ws',
+                    // Alamat yang dipakai BROWSER untuk buka terminal websocket.
+                    // Beda dari bridge_url (server-to-server, Docker internal).
+                    // Kosongkan kalau sidecar co-located & reachable langsung dari
+                    // browser (dev). Isi kalau sidecar di network internal dan
+                    // di-expose via reverse proxy / Cloudflare Tunnel dengan path.
+                    'optional' => true,
+                ],
             ],
         ],
 
