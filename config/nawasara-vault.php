@@ -26,6 +26,22 @@ return [
             ],
         ],
 
+        // Realm warga (ponorogo-citizen) punya client admin sendiri, terpisah
+        // dari realm pegawai. Group sendiri — bukan multi_instance — karena
+        // keduanya beda siklus hidup, beda pemilik, dan beda tingkat risiko:
+        // salah ambil kredensial jadi tidak mungkin, bukan sekadar tidak mudah.
+        'keycloak-warga' => [
+            'label' => 'Keycloak — Realm Warga',
+            'icon' => 'lucide-users-round',
+            'test' => \Nawasara\Keycloak\Services\KeycloakClient::class.'@testCitizenConnection',
+            'fields' => [
+                'base_url' => ['label' => 'Base URL', 'type' => 'text', 'placeholder' => 'https://kisara.ponorogo.go.id'],
+                'realm' => ['label' => 'Realm', 'type' => 'text', 'placeholder' => 'ponorogo-citizen'],
+                'client_id' => ['label' => 'Client ID', 'type' => 'text', 'placeholder' => 'nawasara-citizen-admin'],
+                'client_secret' => ['label' => 'Client Secret', 'type' => 'password'],
+            ],
+        ],
+
         'cloudflare' => [
             'label' => 'Cloudflare',
             'icon' => 'lucide-cloud',
