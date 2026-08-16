@@ -18,6 +18,28 @@ class VaultServiceProvider extends ServiceProvider
 
         $this->registerLivewire();
         $this->offerPublishing();
+        $this->registerMinioDisk();
+    }
+
+    /**
+     * Daftarkan disk `minio` yang kredensialnya diambil dari Vault.
+     *
+     * Didaftarkan sebagai driver kustom, bukan entri statis di
+     * `config/filesystems.php`, karena config di-cache di produksi: kunci yang
+     * baru diganti admin tidak akan terbaca sampai cache dibersihkan, dan itu
+     * membuat rotasi kunci tampak tidak berpengaruh.
+     *
+     * Tetap bernama `minio` supaya `Storage::disk('minio')` bekerja seperti
+     * biasa — termasuk untuk baris `nawasara_aspirations_attachments` lama yang
+     * sudah menyimpan nama disk itu di kolomnya.
+     */
+    protected function registerMinioDisk(): void
+    {
+        \Illuminate\Support\Facades\Storage::extend('minio', function ($app, array $config) {
+            $bucket = $config['bucket'] ?? null;
+
+            return \Nawasara\Vault\Services\MinioDisk::make($bucket);
+        });
     }
 
     public function register(): void

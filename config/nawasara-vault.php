@@ -112,6 +112,51 @@ return [
             ],
         ],
 
+        /*
+        | MinIO — penyimpanan objek untuk berkas yang diunggah.
+        |
+        | SATU group, bukan multi_instance, meski dipakai banyak paket. Yang
+        | disimpan di sini adalah kredensial SERVER-nya; nama bucket ditentukan
+        | masing-masing paket lewat config-nya sendiri
+        | (`nawasara-aspirations.storage.bucket`, dan seterusnya).
+        |
+        | Alasannya: satu server MinIO dengan banyak bucket hanya perlu satu
+        | pasang kunci. Menjadikannya multi_instance berarti kunci yang sama
+        | diketik ulang untuk setiap bucket, dan saat kuncinya dirotasi, satu
+        | entri yang terlewat akan mematikan unggahan paket itu saja — gagal
+        | sebagian, yang justru paling sulit disadari.
+        |
+        | Bila kelak tiap bucket perlu user MinIO sendiri (agar bocornya satu
+        | kunci tidak membuka bucket lain), barulah multi_instance masuk akal.
+        */
+        'minio' => [
+            'label' => 'MinIO (Penyimpanan Berkas)',
+            'icon' => 'lucide-hard-drive',
+            'test' => \Nawasara\Vault\Services\MinioTester::class.'@testConnection',
+            'fields' => [
+                'endpoint' => [
+                    'label' => 'Endpoint',
+                    'type' => 'text',
+                    'placeholder' => 'https://minio.ponorogo.go.id',
+                ],
+                'access_key' => ['label' => 'Access Key', 'type' => 'text'],
+                'secret_key' => ['label' => 'Secret Key', 'type' => 'password'],
+                'region' => [
+                    'label' => 'Region',
+                    'type' => 'text',
+                    'placeholder' => 'us-east-1',
+                    'optional' => true,
+                ],
+                // Bucket bawaan untuk paket yang tidak menentukan sendiri.
+                // Paket yang perlu bucket terpisah menyebutnya di config-nya.
+                'bucket' => [
+                    'label' => 'Bucket Bawaan',
+                    'type' => 'text',
+                    'placeholder' => 'nawasara',
+                ],
+            ],
+        ],
+
         'teleport' => [
             'label' => 'Teleport (SSH SSO)',
             'icon' => 'lucide-server',
