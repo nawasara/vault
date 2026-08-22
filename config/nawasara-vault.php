@@ -139,6 +139,20 @@ return [
                     'type' => 'text',
                     'placeholder' => 'https://minio.ponorogo.go.id',
                 ],
+                // Alamat yang dipakai MENYUSUN URL untuk pengguna, bila
+                // berbeda dari alamat yang dipakai server menghubungi MinIO.
+                //
+                // Keduanya sering tidak sama: server memanggil MinIO lewat
+                // jaringan dalam (mis. http://111.1.1.53:46417), sedangkan
+                // ponsel warga hanya dapat menjangkau nama publiknya. Bila
+                // dibiarkan kosong, URL foto dibuat dari `endpoint` — dan
+                // ponsel warga tidak akan pernah dapat membukanya.
+                'public_url' => [
+                    'label' => 'URL Publik (bila berbeda dari Endpoint)',
+                    'type' => 'text',
+                    'placeholder' => 'https://minio.ponorogo.go.id',
+                    'optional' => true,
+                ],
                 'access_key' => ['label' => 'Access Key', 'type' => 'text'],
                 'secret_key' => ['label' => 'Secret Key', 'type' => 'password'],
                 'region' => [

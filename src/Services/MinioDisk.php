@@ -41,13 +41,44 @@ class MinioDisk
             return self::$cache[$bucket];
         }
 
+        $endpoint = rtrim((string) Vault::get('minio', 'endpoint'), '/');
+
+        // Alamat untuk MENYUSUN URL, bila berbeda dari alamat untuk
+        // MENGHUBUNGI MinIO.
+        //
+        // ⚠️ Keduanya sering berbeda, dan menyamakannya adalah kekeliruan yang
+        // tidak terlihat dari sisi server: server memanggil MinIO lewat
+        // jaringan dalam, jadi unggah dan uji koneksi berhasil sempurna —
+        // sementara URL yang dikirim ke ponsel warga menunjuk alamat internal
+        // yang tak akan pernah dapat mereka jangkau.
+        //
+        // Ditemukan 22 Agustus 2026: URL foto laporan warga menunjuk
+        // http://111.1.1.53:46417 — IP lokal, port tinggi, HTTP polos.
+        $publicUrl = trim((string) Vault::get('minio', 'public_url'));
+
         return self::$cache[$bucket] = Storage::build([
             'driver' => 's3',
             'key' => (string) Vault::get('minio', 'access_key'),
             'secret' => (string) Vault::get('minio', 'secret_key'),
             'region' => (string) Vault::get('minio', 'region') ?: 'us-east-1',
             'bucket' => $bucket,
-            'endpoint' => rtrim((string) Vault::get('minio', 'endpoint'), '/'),
+            'endpoint' => $endpoint,
+
+            // ⚠️ DUA kunci, bukan satu — dan mengisi hanya `url` tidak cukup.
+            //
+            // Laravel memakai `url` untuk URL publik biasa (`Storage::url`),
+            // tetapi presigned URL dibentuk `temporaryUrl()` yang membaca
+            // kunci `temporary_url` — kunci yang BERBEDA. Foto laporan warga
+            // seluruhnya memakai presigned URL karena bucket-nya privat, jadi
+            // mengisi `url` sendirian tidak akan mengubah apa pun yang dilihat
+            // warga.
+            //
+            // Diperiksa di AwsS3V3Adapter::temporaryUrl() pada framework yang
+            // terpasang, bukan diduga dari namanya.
+            ...($publicUrl !== '' ? [
+                'url' => rtrim($publicUrl, '/'),
+                'temporary_url' => rtrim($publicUrl, '/'),
+            ] : []),
 
             // WAJIB true — MinIO memakai gaya path (host/bucket), bukan gaya
             // virtual-host milik AWS (bucket.host). Bila salah, setiap
