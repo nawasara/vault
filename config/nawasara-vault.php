@@ -215,6 +215,23 @@ return [
             ],
         ],
 
+        'telegram' => [
+            'label' => 'Telegram Bot',
+            'icon' => 'lucide-send',
+            'test' => \Nawasara\Notification\Channels\TelegramChannel::class.'@testConnection',
+            'fields' => [
+                'bot_token' => ['label' => 'Bot Token', 'type' => 'password', 'placeholder' => '123456:ABC-DEF...'],
+                'chat_id' => ['label' => 'Chat ID Grup', 'type' => 'text', 'placeholder' => '-1001234567890'],
+                // Topik: id thread dari grup ber-Topics. Dibiarkan opsional
+                // supaya Telegram tetap dapat dipakai pada grup biasa tanpa
+                // Topics — pesannya cukup masuk ke aliran utama.
+                'topic_kritis' => ['label' => 'Topik: Kritis', 'type' => 'text', 'placeholder' => '2', 'optional' => true],
+                'topic_keamanan' => ['label' => 'Topik: Keamanan', 'type' => 'text', 'placeholder' => '3', 'optional' => true],
+                'topic_sinkronisasi' => ['label' => 'Topik: Sinkronisasi', 'type' => 'text', 'placeholder' => '4', 'optional' => true],
+                'topic_pengumuman' => ['label' => 'Topik: Pengumuman', 'type' => 'text', 'placeholder' => '5', 'optional' => true],
+            ],
+        ],
+
         'smtp' => [
             'label' => 'SMTP Email',
             'icon' => 'lucide-mail',
