@@ -229,6 +229,19 @@ return [
                 'topic_keamanan' => ['label' => 'Topik: Keamanan', 'type' => 'text', 'placeholder' => '3', 'optional' => true],
                 'topic_sinkronisasi' => ['label' => 'Topik: Sinkronisasi', 'type' => 'text', 'placeholder' => '4', 'optional' => true],
                 'topic_pengumuman' => ['label' => 'Topik: Pengumuman', 'type' => 'text', 'placeholder' => '5', 'optional' => true],
+
+                // Dipisah dari Kritis setelah terbukti membanjirinya: 29 dari
+                // 73 monitor sedang mati, dan peringatan yang benar-benar
+                // jarang (agen keamanan mati, disk hampir habis) ikut
+                // tenggelam di antaranya.
+                'topic_ketersediaan' => ['label' => 'Topik: Ketersediaan', 'type' => 'text', 'placeholder' => '6', 'optional' => true],
+
+                // WiFi publik terpisah dari layanan dalam: yang menanganinya
+                // orang lain, dan matinya satu titik WiFi tidak menuntut
+                // tindakan yang sama dengan matinya basis data.
+                'topic_wifi' => ['label' => 'Topik: WiFi Publik', 'type' => 'text', 'placeholder' => '7', 'optional' => true],
+
+                'topic_sertifikat' => ['label' => 'Topik: Sertifikat', 'type' => 'text', 'placeholder' => '8', 'optional' => true],
             ],
         ],
 
