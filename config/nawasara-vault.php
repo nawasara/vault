@@ -61,6 +61,22 @@ return [
                 'token_id' => ['label' => 'Token ID', 'type' => 'text', 'placeholder' => 'user@pve!token-name'],
                 'token_secret' => ['label' => 'Token Secret', 'type' => 'password'],
                 'verify_ssl' => ['label' => 'Verify SSL', 'type' => 'select', 'options' => ['true' => 'Ya', 'false' => 'Tidak']],
+
+                // ⚠️ Hanya untuk CONSOLE TEKS, dan hanya itu.
+                //
+                // Seluruh fitur lain memakai API token di atas. Console teks
+                // tidak bisa: Proxmox menolak token di /access/ticket (401),
+                // dan termproxy menjawab 500 bila dipanggil dengan token.
+                // Endpoint itu menuntut tiket sesi, dan tiket sesi hanya
+                // terbit dari username + kata sandi.
+                //
+                // Kosongkan bila console teks tidak dipakai — semua fitur lain
+                // tetap berjalan tanpanya.
+                //
+                // Gunakan akun PVE dengan hak sekecil mungkin, bukan root@pam,
+                // bila realm Anda memungkinkan. Kredensial ini membuka shell.
+                'console_user' => ['label' => 'Console User (opsional)', 'type' => 'text', 'placeholder' => 'root@pam', 'optional' => true],
+                'console_password' => ['label' => 'Console Password (opsional)', 'type' => 'password', 'optional' => true],
             ],
         ],
 
