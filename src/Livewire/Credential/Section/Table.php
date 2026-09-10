@@ -5,11 +5,32 @@ namespace Nawasara\Vault\Livewire\Credential\Section;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
+use Nawasara\AuthPrimitives\Attributes\RequiresSudo;
+use Nawasara\AuthPrimitives\Traits\WithSudo;
 use Nawasara\Vault\Models\Credential;
 use Nawasara\Vault\Facades\Vault;
 
+/**
+ * Brankas kredensial — SETIAP aksi di sini digerbang sudo, bukan hanya yang
+ * merusak.
+ *
+ * Di halaman lain, gerbang sudo dipasang pada aksi destruktif saja: membaca
+ * daftar aman, menghapus tidak. Di sini pembacaan justru yang paling berbahaya.
+ * Satu klik "tampilkan" mengeluarkan kata sandi dalam bentuk yang dapat dibaca
+ * dan disalin, dan sesudah itu ia berada di luar jangkauan sistem ini
+ * selamanya — tidak ada yang bisa ditarik kembali.
+ *
+ * Isi brankas ini termasuk kredensial yang menguasai seluruh infrastruktur:
+ * root@pam Proxmox, admin Keycloak, pangkalan data produksi. Sesi yang
+ * ditinggalkan terbuka di komputer bersama sudah cukup.
+ *
+ * `vault_access_log` mencatat siapa membuka apa, tetapi catatan hanya berguna
+ * SETELAH kejadian. Sudo yang menahannya lebih dulu.
+ */
 class Table extends Component
 {
+    use WithSudo;
+
     // Modal state
     public string $editingGroup = '';
     public string $editingInstance = '';
@@ -52,6 +73,21 @@ class Table extends Component
         return $result;
     }
 
+    /**
+     * ⚠️ INILAH gerbang yang sebenarnya, bukan toggleReveal().
+     *
+     * Metode ini memuat nilai kredensial — termasuk kata sandi — ke
+     * `$this->fields`, dan blade mengikatnya lewat `wire:model`. Begitu modal
+     * terbuka, sandi itu SUDAH berada di snapshot Livewire di browser: terbaca
+     * dari devtools, dari respons jaringan, dari mana pun, tanpa menekan
+     * tombol mata sama sekali.
+     *
+     * Tombol mata di blade murni Alpine (`show ? 'text' : 'password'`) dan
+     * tidak memanggil toggleReveal(). Menggerbang toggleReveal() saja berarti
+     * menjaga pintu yang tidak dilewati siapa pun — tampak aman di kode, tidak
+     * menahan apa pun pada kenyataannya.
+     */
+    #[RequiresSudo(reason: 'membuka kredensial tersimpan')]
     public function openGroup(string $group, ?string $instance = null)
     {
         Gate::authorize('vault.credential.view');
@@ -84,6 +120,14 @@ class Table extends Component
         $this->dispatch('modal-open:vault-credential-form');
     }
 
+    /**
+     * Instance baru — digerbang di sini, bukan hanya di save().
+     *
+     * Menahannya di depan berarti orang tidak mengisi seluruh formulir lebih
+     * dulu untuk kemudian ditolak saat menyimpan; dan bila sesinya memang tidak
+     * berhak, tak ada gunanya membiarkan formulirnya terbuka.
+     */
+    #[RequiresSudo(reason: 'menambah instance kredensial')]
     public function addInstance(string $group)
     {
         Gate::authorize('vault.credential.manage');
@@ -121,6 +165,15 @@ class Table extends Component
         return '';
     }
 
+    /**
+     * ⚠️ Sudo pada aksi MEMBACA — sengaja, dan bukan kelebihan kehati-hatian.
+     *
+     * Begitu sebuah kata sandi tergambar di layar, ia dapat dibaca, difoto,
+     * atau disalin, dan tidak ada cara menariknya kembali. Berbeda dari
+     * penghapusan yang masih dapat dipulihkan dari cadangan, kebocoran di sini
+     * bersifat sekali dan selamanya.
+     */
+    #[RequiresSudo(reason: 'menampilkan kredensial')]
     public function toggleReveal(string $key)
     {
         Gate::authorize('vault.credential.reveal');
@@ -128,6 +181,14 @@ class Table extends Component
         $this->revealed[$key] = ! ($this->revealed[$key] ?? false);
     }
 
+    /**
+     * Menyimpan kredensial — baik baru maupun perubahan.
+     *
+     * Digerbang karena mengubah kredensial dapat MENGALIHKAN sambungan:
+     * mengganti host pangkalan data ke mesin milik penyerang membuat aplikasi
+     * mengirimkan datanya sendiri ke sana, tanpa satu pun galat muncul.
+     */
+    #[RequiresSudo(reason: 'menyimpan kredensial')]
     public function save()
     {
         Gate::authorize('vault.credential.manage');
@@ -199,6 +260,13 @@ class Table extends Component
         $this->js($js);
     }
 
+    /**
+     * Menghapus seluruh kredensial satu instance.
+     *
+     * Layanan yang memakainya berhenti bekerja seketika, dan pemulihannya
+     * menuntut kredensial aslinya ada di tempat lain — yang belum tentu benar.
+     */
+    #[RequiresSudo(reason: 'menghapus instance kredensial')]
     public function deleteInstance(string $group, string $instance)
     {
         Gate::authorize('vault.credential.manage');
