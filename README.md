@@ -1,16 +1,16 @@
 # Nawasara Vault
 
-Encrypted credential management for the Nawasara superapp framework. Every service package (Cloudflare, WHM, Keycloak, SMTP, etc.) reads its credentials from this single place at runtime, rotates without redeploy, and gets a complete access log for audit.
+Encrypted credential management for the Nawasara superapp framework. Every service package (Cloudflare, WHM, Keycloak, SMTP, and so on) reads its credentials from this single place at runtime, rotates them without a redeploy, and gets a full access log for audit.
 
 ## Features
 
-- **Service groups** — declarative group-of-fields registration via `config/nawasara-vault.php`. Each service contributes its own group with the fields it needs (host, token, password, etc.)
-- **Multi-instance** — flag `multi_instance => true` on a group to manage many credential sets per service (e.g. multiple WHM servers, multiple Cloudflare accounts)
-- **Optional fields** — `optional => true` on a field exempts it from the "complete" check so the group can still be marked configured without it
-- **Field types** — `text`, `password`, `select`, `textarea` (multi-line for PEM keys, etc.)
-- **Encryption at rest** — values stored encrypted via Laravel's built-in encrypter, decrypted on read
-- **Access log** — every read / write / delete of a credential is recorded with user, action, and timestamp
-- **One-click test connection** — declare `'test' => Service@method` on a group; the credential dropdown shows a Test Connection button that calls your handler and surfaces the result as a toast
+- **Service groups**: declarative group-of-fields registration via `config/nawasara-vault.php`. Each service contributes its own group with the fields it needs (host, token, password, etc.)
+- **Multi-instance**: set `multi_instance => true` on a group to manage many credential sets per service, such as multiple WHM servers or multiple Cloudflare accounts
+- **Optional fields**: `optional => true` on a field exempts it from the "complete" check, so the group can still be marked configured without it
+- **Field types**: `text`, `password`, `select`, `textarea` (multi-line, useful for PEM keys)
+- **Encryption at rest**: values are stored encrypted via Laravel's built-in encrypter and decrypted on read
+- **Access log**: every read, write, or delete of a credential is recorded with user, action, and timestamp
+- **One-click test connection**: declare `'test' => Service@method` on a group and the credential dropdown shows a Test Connection button that calls your handler and surfaces the result as a toast
 
 ## Installation
 
@@ -72,9 +72,9 @@ Vault::isConfigured('cloudflare');                  // every required field has 
 Vault::isConfigured('whm', 'WHM-Ryder');
 
 // List instances of a multi-instance group
-Vault::instances('whm');                            // ['WHM-Ryder', 'WHM-30', …]
+Vault::instances('whm');                            // ['WHM-Ryder', 'WHM-30', ...]
 
-// Programmatic write (rare — usually done through the UI)
+// Programmatic write (rare, usually done through the UI)
 Vault::set('cloudflare', 'api_token', $secret);
 Vault::delete('cloudflare', 'api_token');
 ```
@@ -93,7 +93,7 @@ public function testConnection(?string $instance = null): array
 }
 ```
 
-The credential UI calls the handler and shows the message as a green/red toast.
+The credential UI calls the handler and shows the message as a green or red toast.
 
 ## Pages
 
@@ -107,7 +107,7 @@ The credential UI calls the handler and shows the message as a green/red toast.
 | Permission | Description |
 |---|---|
 | `vault.credential.view` | View credential list and individual fields |
-| `vault.credential.manage` | Create / edit / delete credentials and instances |
+| `vault.credential.manage` | Create, edit, and delete credentials and instances |
 | `vault.credential.reveal` | Reveal a masked credential value |
 | `vault.access-log.view` | View the access log |
 
