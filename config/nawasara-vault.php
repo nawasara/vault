@@ -356,6 +356,19 @@ return [
                 'admin_password' => ['label' => 'Admin Password (Fase F, opsional)', 'type' => 'password', 'optional' => true],
             ],
         ],
+
+        'job-vacancy' => [
+            'label' => 'Lowongan Kerja (Rakaca)',
+            'icon' => 'lucide-briefcase',
+            'test' => \Nawasara\JobVacancy\Services\JobVacancyClient::class.'@testConnection',
+            'fields' => [
+                // Cukup asal domainnya. Jalur endpoint dibentuk paketnya sendiri
+                // menjadi {base_url}/api/v1/loker/lokers; nama "loker" tetap
+                // dipakai di sisi hulu meski paketnya sudah berbahasa Inggris.
+                'base_url' => ['label' => 'Base URL', 'type' => 'text', 'placeholder' => 'https://rakaca.ponorogo.go.id'],
+                'api_token' => ['label' => 'API Token', 'type' => 'password'],
+            ],
+        ],
     ],
 
     /*
