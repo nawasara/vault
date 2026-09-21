@@ -377,11 +377,70 @@ return [
     |--------------------------------------------------------------------------
     |
     | log_reads: Catat setiap kali credential dibaca oleh sistem.
-    |            Set false jika terlalu noisy (polling setiap 5 menit = banyak log).
     | retention_days: Hapus access log lebih dari N hari.
+    |
+    | ⚠️ Kedua setelan ini ADA sejak awal, tetapi sampai 21 September 2026
+    | tidak ada yang menjalankan pembersihannya. Tabelnya tumbuh menjadi
+    | 5,9 juta baris (~90 ribu per hari) dan `count()` atasnya butuh satu
+    | detik penuh, yang terasa di setiap halaman panel yang menampilkan
+    | jumlah. Sekarang ada `nawasara-vault:prune-access-log` yang dijadwalkan
+    | tiap hari; lihat blok `prune` di bawah.
     |
     */
 
-    'log_reads' => true,
-    'retention_days' => 90,
+    /*
+     * Mencatat pembacaan oleh SISTEM, bukan oleh manusia.
+     *
+     * Diukur 21 September 2026: dari 2,5 juta catatan dalam 30 hari,
+     * 2.524.082 berasal dari `system` dan hanya 11.241 dari `user`. Yang
+     * 99,6% itu adalah Nawasara membaca kredensialnya sendiri tiap kali sync
+     * berjalan, bukan jejak audit yang pernah dibaca orang.
+     *
+     * Dibiarkan menyala karena jejak "siapa membaca rahasia apa" memang
+     * bagian dari alasan Vault ada. Yang membuatnya sanggup ditanggung adalah
+     * cache di VaultManager (lihat `cache_ttl`) plus pembersihan terjadwal,
+     * bukan mematikan pencatatannya.
+     *
+     * Bila kelak tetap terlalu ramai, matikan ini dan catatan `user` akan
+     * tetap tersimpan lewat jalur `create`/`update`/`delete`.
+     */
+    'log_reads' => env('VAULT_LOG_READS', true),
+
+    /*
+     * Berapa detik nilai kredensial boleh ditahan di cache.
+     *
+     * Sebelum ada ini, tiap `Vault::get()` menembak basis data tiga kali:
+     * SELECT, UPDATE `last_accessed_at`, INSERT log. Sebuah klien memanggil
+     * Vault sekali per FIELD, jadi menyambung ke satu basis data saja berarti
+     * empat panggilan (host, port, username, password), dan itu berulang tiap
+     * beberapa menit untuk tiap target. Terukur 53 baris log per menit.
+     *
+     * ⚠️ Jangan dibuat panjang. Kredensial yang baru dirotasi admin harus
+     * segera berlaku; satu menit basi dapat diterima, satu jam tidak.
+     * `set()` dan `delete()` membuang cache-nya sendiri, jadi rotasi lewat
+     * panel berlaku seketika tanpa menunggu TTL.
+     *
+     * 0 mematikan cache sepenuhnya, kembali ke perilaku lama.
+     */
+    'cache_ttl' => (int) env('VAULT_CACHE_TTL', 60),
+
+    'retention_days' => (int) env('VAULT_RETENTION_DAYS', 90),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pembersihan access log
+    |--------------------------------------------------------------------------
+    |
+    | Menjalankan `nawasara-vault:prune-access-log` tiap hari, menghapus
+    | catatan yang lebih tua dari `retention_days` secara bertahap.
+    |
+    | Jamnya mengikuti Asia/Jakarta, disetel di ServiceProvider, karena
+    | `app.timezone` bernilai UTC dan jadwal jam dinding tanpa itu meleset
+    | tujuh jam.
+    |
+    */
+    'prune' => [
+        'enabled' => env('VAULT_PRUNE_ENABLED', true),
+        'cron' => env('VAULT_PRUNE_CRON', '10 3 * * *'),
+    ],
 ];

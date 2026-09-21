@@ -2,6 +2,7 @@
 
 namespace Nawasara\Vault;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Livewire\Livewire;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
@@ -19,6 +20,50 @@ class VaultServiceProvider extends ServiceProvider
         $this->registerLivewire();
         $this->offerPublishing();
         $this->registerMinioDisk();
+        $this->registerSchedule();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Nawasara\Vault\Console\Commands\PruneAccessLogCommand::class,
+            ]);
+        }
+    }
+
+    /**
+     * Jadwalkan pembersihan access log.
+     *
+     * ⚠️ `retention_days` sudah ada di config sejak paket ini dibuat, tetapi
+     * tidak pernah ada yang menjalankannya. Tabelnya tumbuh sampai 5,9 juta
+     * baris sebelum ketahuan, dan `count()` atasnya butuh satu detik penuh.
+     *
+     * Dipanggil lewat `$schedule->call()` yang memanggil Artisan, BUKAN
+     * `$schedule->command()`: perintah yang didaftarkan lewat `$this->commands()`
+     * di sebuah paket tidak selalu muncul di kernel Artisan saat scheduler
+     * boot, dan kalau tidak muncul, jadwalnya diam saja tanpa galat
+     * (AGENTS.md §7).
+     *
+     * Jam 03.10 waktu Jakarta, bukan UTC: `app.timezone` di sini UTC, jadi
+     * jadwal jam dinding tanpa `->timezone()` meleset tujuh jam dan berjalan
+     * di tengah jam sibuk.
+     */
+    protected function registerSchedule(): void
+    {
+        $this->app->booted(function () {
+            if (! $this->app->runningInConsole()) {
+                return;
+            }
+
+            if (! config('nawasara-vault.prune.enabled', true)) {
+                return;
+            }
+
+            $this->app->make(Schedule::class)
+                ->call(fn () => \Illuminate\Support\Facades\Artisan::call('nawasara-vault:prune-access-log'))
+                ->name('nawasara-vault:prune-access-log')
+                ->cron((string) config('nawasara-vault.prune.cron', '10 3 * * *'))
+                ->timezone('Asia/Jakarta')
+                ->withoutOverlapping(30);
+        });
     }
 
     /**
