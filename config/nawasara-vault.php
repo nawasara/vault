@@ -369,6 +369,32 @@ return [
                 'api_token' => ['label' => 'API Token', 'type' => 'password'],
             ],
         ],
+
+        'pdam' => [
+            'label' => 'PDAM (PUDAM Tirta Katong)',
+            'icon' => 'lucide-droplets',
+            // Diuji dengan nomor yang pasti tidak ada, supaya tombol Uji tidak
+            // menarik nama dan alamat pelanggan sungguhan ke layar admin.
+            'test' => \Nawasara\Pdam\Services\PdamClient::class.'@testConnection',
+            'fields' => [
+                // Cukup domainnya; jalur /api/kominfo/tagihan dibentuk paketnya.
+                'base_url' => ['label' => 'Base URL', 'type' => 'text', 'placeholder' => 'https://pudamtirtakatong.com'],
+                'api_key' => ['label' => 'API Key', 'type' => 'password'],
+            ],
+        ],
+
+        'simas-hebat' => [
+            'label' => 'SIMAS Hebat (Data Pegawai)',
+            'icon' => 'lucide-id-card',
+            'test' => \Nawasara\Registry\Services\SimasHebatClient::class.'@testConnection',
+            'fields' => [
+                // Cukup domainnya; jalur /api/v1/external/pegawai/ dibentuk
+                // paketnya sendiri.
+                'base_url' => ['label' => 'Base URL', 'type' => 'text', 'placeholder' => 'https://simashebat.ponorogo.go.id'],
+                'token' => ['label' => 'Bearer Token', 'type' => 'password'],
+                'app_id' => ['label' => 'App ID', 'type' => 'password'],
+            ],
+        ],
     ],
 
     /*
