@@ -261,6 +261,31 @@ return [
             ],
         ],
 
+        // Push notification ke aplikasi warga Ponorogo Hub.
+        //
+        // Satu kolom saja: isi utuh berkas service account dari Firebase
+        // (Project settings, Service accounts, Generate private key). Project
+        // id dibaca dari dalam JSON itu, bukan diketik terpisah, karena dua
+        // isian yang harus sama pada akhirnya akan berbeda.
+        //
+        // ⚠️ Bukan google-services.json. Berkas itu milik APLIKASI dan tidak
+        // berisi kunci privat; menempelkannya di sini membuat tombol uji
+        // menjawab "belum diisi".
+        'fcm' => [
+            'label' => 'Firebase Cloud Messaging',
+            'icon' => 'lucide-bell-ring',
+            'test' => \Nawasara\Notification\Channels\FcmChannel::class.'@testConnection',
+            'fields' => [
+                'service_account_json' => [
+                    'label' => 'Service Account (JSON)',
+                    'type' => 'textarea',
+                    'rows' => 10,
+                    'placeholder' => "{\n  \"type\": \"service_account\",\n  \"project_id\": \"...\",\n  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\n...\",\n  \"client_email\": \"...@....iam.gserviceaccount.com\"\n}",
+                ],
+            ],
+            'multi_instance' => false,
+        ],
+
         'smtp' => [
             'label' => 'SMTP Email',
             'icon' => 'lucide-mail',
