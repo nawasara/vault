@@ -2,7 +2,9 @@
 
 namespace Nawasara\Vault\Services;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Nawasara\Vault\Models\Credential;
 use Nawasara\Vault\Models\AccessLog;
 
@@ -39,11 +41,32 @@ class VaultManager
             return $this->fetch($group, $key, $instance);
         }
 
-        return Cache::remember(
-            $this->cacheKey($group, $key, $instance),
-            $ttl,
-            fn () => $this->fetch($group, $key, $instance),
-        );
+        // Audit keamanan 15 Oktober 2026 (S15): isi cache dulu berupa
+        // plaintext. Di prod cache itu Redis tanpa sandi, di dev
+        // CACHE_STORE=database sehingga sandi ikut ke setiap backup DB.
+        // Sekarang yang disimpan adalah ciphertext; dekripsi satu nilai jauh
+        // lebih murah daripada tiga query yang dihemat cache ini, jadi
+        // manfaat kinerjanya tetap.
+        $cacheKey = $this->cacheKey($group, $key, $instance);
+        $cached = Cache::get($cacheKey);
+
+        if (is_string($cached)) {
+            try {
+                return Crypt::decryptString($cached);
+            } catch (DecryptException) {
+                // APP_KEY berganti atau isi cache rusak: buang, ambil ulang.
+                Cache::forget($cacheKey);
+            }
+        }
+
+        $value = $this->fetch($group, $key, $instance);
+
+        // null tidak di-cache, sama seperti perilaku Cache::remember dulu.
+        if ($value !== null) {
+            Cache::put($cacheKey, Crypt::encryptString($value), $ttl);
+        }
+
+        return $value;
     }
 
     /**
@@ -74,7 +97,9 @@ class VaultManager
 
     protected function cacheKey(string $group, string $key, ?string $instance): string
     {
-        return 'nawasara-vault:'.$group.':'.$key.':'.($instance ?? '-');
+        // Awalan 'enc:' memisahkan entri terenkripsi dari entri plaintext
+        // lama yang mungkin masih tersisa di cache sampai TTL-nya habis.
+        return 'nawasara-vault:enc:'.$group.':'.$key.':'.($instance ?? '-');
     }
 
     /**
@@ -108,6 +133,32 @@ class VaultManager
         $this->forget($group, $key, $instance);
 
         return $credential;
+    }
+
+    /**
+     * Baca satu nilai untuk DITAMPILKAN kepada manusia di panel.
+     *
+     * Audit keamanan 15 Oktober 2026 (T7): dulu panel membaca nilai langsung
+     * lewat model, sehingga pembukaan oleh manusia tidak pernah tercatat di
+     * Access Log. Metode ini sengaja melewati cache (tidak ada gunanya untuk
+     * aksi yang jarang) dan selalu mencatat aksi 'reveal' beserta user-nya,
+     * terlepas dari setelan log_reads yang hanya mengatur pembacaan mesin.
+     */
+    public function reveal(string $group, string $key, ?string $instance = null): ?string
+    {
+        $credential = Credential::query()
+            ->where('group', $group)
+            ->where('key', $key)
+            ->forInstance($instance)
+            ->first();
+
+        if (! $credential) {
+            return null;
+        }
+
+        $this->log($credential, 'reveal');
+
+        return $credential->value;
     }
 
     public function has(string $group, string $key, ?string $instance = null): bool

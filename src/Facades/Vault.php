@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static string|null get(string $group, string $key, ?string $instance = null)
  * @method static \Nawasara\Vault\Models\Credential set(string $group, string $key, string $value, ?string $instance = null, ?string $description = null)
+ * @method static string|null reveal(string $group, string $key, ?string $instance = null)
  * @method static bool has(string $group, string $key, ?string $instance = null)
  * @method static bool delete(string $group, string $key, ?string $instance = null)
  * @method static array group(string $group, ?string $instance = null)

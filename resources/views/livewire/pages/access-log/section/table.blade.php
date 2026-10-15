@@ -1,6 +1,6 @@
 <div>
     @php
-        $actionOptions = ['read' => 'Read', 'create' => 'Create', 'update' => 'Update', 'delete' => 'Delete'];
+        $actionOptions = ['read' => 'Read', 'create' => 'Create', 'update' => 'Update', 'delete' => 'Delete', 'reveal' => 'Reveal'];
     @endphp
 
     {{-- Page header — title left, time-window right. Vault access log
@@ -66,6 +66,8 @@
                                 'create' => 'success',
                                 'update' => 'blue',
                                 'delete' => 'danger',
+                                // reveal = manusia membuka nilai di panel (audit T7)
+                                'reveal' => 'warning',
                                 default => 'neutral',
                             };
                         @endphp

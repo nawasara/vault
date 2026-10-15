@@ -3,6 +3,8 @@
 namespace Nawasara\Vault\Livewire\Credential\Section;
 
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Nawasara\AuthPrimitives\Attributes\RequiresSudo;
@@ -35,10 +37,14 @@ class Table extends Component
     public string $editingGroup = '';
     public string $editingInstance = '';
     public bool $isNewInstance = false;
+    /**
+     * Status field di modal. Audit keamanan 15 Oktober 2026 (T7): `value`
+     * di sini TIDAK PERNAH berisi nilai tersimpan, hanya apa yang diketik
+     * pengguna (kosong = tidak diubah). Pengecualiannya field `select`, yang
+     * isinya pilihan dari config, bukan rahasia. Nilai tersimpan hanya keluar
+     * lewat toggleReveal(), satu field, tanpa singgah di properti publik.
+     */
     public array $fields = [];
-
-    // Reveal state
-    public array $revealed = [];
 
     #[Computed]
     public function groups()
@@ -74,18 +80,21 @@ class Table extends Component
     }
 
     /**
-     * ⚠️ INILAH gerbang yang sebenarnya, bukan toggleReveal().
+     * Membuka modal ubah kredensial.
      *
-     * Metode ini memuat nilai kredensial — termasuk kata sandi — ke
-     * `$this->fields`, dan blade mengikatnya lewat `wire:model`. Begitu modal
-     * terbuka, sandi itu SUDAH berada di snapshot Livewire di browser: terbaca
-     * dari devtools, dari respons jaringan, dari mana pun, tanpa menekan
-     * tombol mata sama sekali.
+     * ⚠️ Audit keamanan 15 Oktober 2026 (T7): dulu metode ini memuat seluruh
+     * nilai kredensial, termasuk kata sandi, ke `$this->fields`. Properti
+     * publik ikut di setiap snapshot Livewire, jadi sandi sudah berada di
+     * browser begitu modal terbuka, cukup dengan izin `view`, dan tanpa satu
+     * baris pun di Access Log. Izin `reveal` tidak berarti apa-apa.
      *
-     * Tombol mata di blade murni Alpine (`show ? 'text' : 'password'`) dan
-     * tidak memanggil toggleReveal(). Menggerbang toggleReveal() saja berarti
-     * menjaga pintu yang tidak dilewati siapa pun — tampak aman di kode, tidak
-     * menahan apa pun pada kenyataannya.
+     * Sekarang yang dimuat hanya STATUS (`has_value`), bukan nilainya. Field
+     * yang sudah tersimpan tampil tersamar; nilainya diminta satu per satu
+     * lewat toggleReveal(). Tidak bisa memilah berdasarkan tipe field:
+     * `client_secret`, `api_token`, `bot_token` di config bertipe `text`.
+     *
+     * Sudo tetap dipasang: membuka modal adalah pintu ke formulir ubah, dan
+     * mengubah kredensial dapat mengalihkan sambungan (lihat save()).
      */
     #[RequiresSudo(reason: 'membuka kredensial tersimpan')]
     public function openGroup(string $group, ?string $instance = null)
@@ -95,7 +104,6 @@ class Table extends Component
         $this->editingGroup = $group;
         $this->editingInstance = $instance ?? '';
         $this->isNewInstance = false;
-        $this->revealed = [];
 
         $config = config("nawasara-vault.groups.{$group}", []);
         $this->fields = [];
@@ -106,17 +114,25 @@ class Table extends Component
                 ->forInstance($instance)
                 ->first();
 
-            // Pre-fill select fields dengan first option supaya Livewire wire:model
-            // align dengan apa yang browser tampilkan secara visual. Tanpa ini,
-            // user yang tidak menyentuh dropdown akan submit empty value dan field
-            // di-skip saat save (lihat save() ! empty check).
+            $isSelect = ($fieldConfig['type'] ?? 'text') === 'select';
+
+            // Select: nilai tersimpan dimuat karena isinya salah satu opsi
+            // config (bukan rahasia) dan dropdown harus menampilkan pilihan
+            // yang benar. Bila belum tersimpan, opsi pertama dipakai supaya
+            // wire:model sejalan dengan yang tampil di browser. `original`
+            // dipakai save() untuk tahu apakah select itu diubah.
+            // Field lain SELALU mulai kosong.
+            $stored = $isSelect && $credential ? (string) $credential->value : null;
+
             $this->fields[$key] = [
-                'value' => $credential?->value ?? $this->defaultValueFor($fieldConfig),
+                'value' => $isSelect ? ($stored ?? $this->defaultValueFor($fieldConfig)) : '',
                 'config' => $fieldConfig,
                 'has_value' => (bool) $credential,
+                'original' => $stored,
             ];
         }
 
+        $this->clearRevealedInBrowser();
         $this->dispatch('modal-open:vault-credential-form');
     }
 
@@ -135,7 +151,6 @@ class Table extends Component
         $this->editingGroup = $group;
         $this->editingInstance = '';
         $this->isNewInstance = true;
-        $this->revealed = [];
 
         $config = config("nawasara-vault.groups.{$group}", []);
         $this->fields = [];
@@ -145,9 +160,11 @@ class Table extends Component
                 'value' => $this->defaultValueFor($fieldConfig),
                 'config' => $fieldConfig,
                 'has_value' => false,
+                'original' => null,
             ];
         }
 
+        $this->clearRevealedInBrowser();
         $this->dispatch('modal-open:vault-credential-form');
     }
 
@@ -166,19 +183,94 @@ class Table extends Component
     }
 
     /**
-     * ⚠️ Sudo pada aksi MEMBACA — sengaja, dan bukan kelebihan kehati-hatian.
+     * Menampilkan SATU nilai tersimpan kepada pengguna.
      *
+     * ⚠️ Sudo pada aksi MEMBACA, sengaja, dan bukan kelebihan kehati-hatian.
      * Begitu sebuah kata sandi tergambar di layar, ia dapat dibaca, difoto,
-     * atau disalin, dan tidak ada cara menariknya kembali. Berbeda dari
-     * penghapusan yang masih dapat dipulihkan dari cadangan, kebocoran di sini
-     * bersifat sekali dan selamanya.
+     * atau disalin, dan tidak ada cara menariknya kembali.
+     *
+     * Audit keamanan 15 Oktober 2026 (T7): inilah satu-satunya jalan nilai
+     * tersimpan keluar ke browser. Nilainya dikirim lewat $this->js() sebagai
+     * event browser, yang menumpang di bagian `effects` respons Livewire dan
+     * TIDAK masuk snapshot: ia tidak ikut bolak-balik di request berikutnya
+     * dan tidak terbaca dari properti komponen. Setiap pembukaan dicatat di
+     * Access Log sebagai aksi `reveal` beserta user-nya.
+     *
+     * Namanya tetap toggleReveal demi kompatibilitas; menyembunyikan kembali
+     * cukup di sisi Alpine dan tidak perlu ke server.
      */
     #[RequiresSudo(reason: 'menampilkan kredensial')]
-    public function toggleReveal(string $key)
+    public function toggleReveal(string $key): void
     {
+        Gate::authorize('vault.credential.view');
         Gate::authorize('vault.credential.reveal');
 
-        $this->revealed[$key] = ! ($this->revealed[$key] ?? false);
+        $group = $this->editingGroup;
+
+        // Hanya field yang memang dideklarasikan untuk grup ini.
+        if ($group === '' || ! array_key_exists($key, config("nawasara-vault.groups.{$group}.fields", []))) {
+            return;
+        }
+
+        $value = Vault::reveal($group, $key, $this->editingInstance ?: null);
+
+        if ($value === null) {
+            $this->toast('error', 'Nilai belum tersimpan');
+
+            return;
+        }
+
+        $this->js(sprintf(
+            'window.dispatchEvent(new CustomEvent("vault-revealed", { detail: %s }));',
+            json_encode(
+                ['key' => $key, 'value' => $value],
+                JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE,
+            ),
+        ));
+    }
+
+    /**
+     * Hapus nilai yang sedang terbuka di browser saat modal dibuka ulang,
+     * supaya nilai grup sebelumnya tidak tertinggal di state Alpine.
+     */
+    protected function clearRevealedInBrowser(): void
+    {
+        $this->js('window.dispatchEvent(new CustomEvent("vault-revealed-clear"));');
+    }
+
+    /**
+     * Field mana yang benar-benar harus ditulis saat menyimpan.
+     *
+     * Kosong = tidak diubah: field tidak pernah diisi nilai tersimpan, jadi
+     * kosong berarti pengguna tidak mengetik apa pun. Select ditulis hanya
+     * bila berbeda dari nilai tersimpannya; tanpa itu setiap simpan menulis
+     * ulang semua select dan memenuhi Access Log dengan `update` palsu.
+     * Dipisah sebagai metode statis murni supaya dapat diuji tanpa DB.
+     *
+     * @return array<string, string> key => nilai baru
+     */
+    public static function fieldsToWrite(array $fields): array
+    {
+        $write = [];
+
+        foreach ($fields as $key => $field) {
+            $value = is_array($field) ? ($field['value'] ?? '') : '';
+
+            if (! is_scalar($value) || (string) $value === '') {
+                continue;
+            }
+
+            $value = (string) $value;
+            $original = $field['original'] ?? null;
+
+            if ($original !== null && $value === (string) $original) {
+                continue;
+            }
+
+            $write[$key] = $value;
+        }
+
+        return $write;
     }
 
     /**
@@ -206,11 +298,19 @@ class Table extends Component
             $instance = $this->editingInstance;
         }
 
-        foreach ($this->fields as $key => $field) {
-            if (! empty($field['value'])) {
-                Vault::set($group, $key, $field['value'], $instance);
+        // Hanya key yang dideklarasikan config grup ini; `fields` adalah
+        // properti publik dan isinya dapat dikarang dari browser.
+        $allowed = config("nawasara-vault.groups.{$group}.fields", []);
+
+        foreach (self::fieldsToWrite($this->fields) as $key => $value) {
+            if (array_key_exists($key, $allowed)) {
+                Vault::set($group, $key, $value, $instance);
             }
         }
+
+        // Kosongkan isian supaya sandi yang baru diketik tidak tinggal di
+        // snapshot sesudah modal ditutup (audit keamanan 15 Oktober 2026, T7).
+        $this->fields = [];
 
         $this->toast('success', 'Credential berhasil disimpan');
         $this->dispatch('modal-close:vault-credential-form');
@@ -235,13 +335,31 @@ class Table extends Component
         try {
             $result = app()->call($handler, ['instance' => $instance]);
 
+            $message = is_string($result['message'] ?? null) ? $result['message'] : null;
+
             if (($result['success'] ?? false) === true) {
-                $this->toast('success', $result['message'] ?? 'Koneksi berhasil');
+                $this->toast('success', $message ?? 'Koneksi berhasil');
             } else {
-                $this->toast('error', $result['message'] ?? 'Koneksi gagal');
+                // Pesan dari handler tetap ditampilkan karena kontrak test
+                // connection memang memuat alasan gagal untuk admin, tetapi
+                // dipotong; versi utuhnya ke log.
+                Log::warning('Vault test connection gagal', [
+                    'group' => $group,
+                    'instance' => $instance,
+                    'message' => $message,
+                ]);
+                $this->toast('error', $message !== null ? Str::limit($message, 200) : 'Koneksi gagal');
             }
         } catch (\Throwable $e) {
-            $this->toast('error', 'Error: '.$e->getMessage());
+            // Audit keamanan 15 Oktober 2026 (R8): pesan exception mentah
+            // dapat memuat URL internal, path berkas, atau potongan balasan
+            // server target. Pengguna cukup tahu bahwa gagal; detailnya ke log.
+            Log::error('Vault test connection melempar exception', [
+                'group' => $group,
+                'instance' => $instance,
+                'exception' => $e,
+            ]);
+            $this->toast('error', 'Test connection gagal karena galat tak terduga. Detail tercatat di log aplikasi.');
         }
     }
 

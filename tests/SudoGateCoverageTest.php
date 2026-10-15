@@ -24,6 +24,11 @@ use ReflectionClass;
  *
  * Menggerbang toggleReveal() saja berarti menjaga pintu yang tidak dilewati
  * siapa pun: tampak aman saat dibaca, tidak menahan apa-apa saat dijalankan.
+ *
+ * Catatan audit keamanan 15 Oktober 2026 (T7): sejak itu openGroup() tidak
+ * lagi memuat nilai ke snapshot, dan toggleReveal() menjadi satu-satunya
+ * jalan nilai keluar. Keduanya tetap wajib bersudo: openGroup() sebagai
+ * pintu formulir ubah, toggleReveal() sebagai pintu nilai.
  */
 class SudoGateCoverageTest extends TestCase
 {

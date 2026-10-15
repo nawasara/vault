@@ -38,10 +38,16 @@
                         @foreach ($group['instances'] as $instance)
                             <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50 dark:bg-neutral-700/50 text-sm">
                                 <span class="text-gray-700 dark:text-neutral-300">{{ $instance }}</span>
+                                @php
+                                    // Nama instance diketik admin: dibungkus Js::from supaya
+                                    // kutip di dalamnya tidak keluar dari string argumen
+                                    // (audit keamanan 15 Oktober 2026, pola S7/T9).
+                                    $instArgs = \Illuminate\Support\Js::from($groupKey) . ', ' . \Illuminate\Support\Js::from($instance);
+                                @endphp
                                 <x-nawasara-ui::dropdown-menu-action :id="$instance" :items="array_filter([
-                                    ['type' => 'click', 'label' => 'Edit', 'wire:click' => 'openGroup(\'' . $groupKey . '\', \'' . $instance . '\')', 'modal' => 'vault-credential-form', 'icon' => 'lucide-pencil', 'permission' => 'vault.credential.view'],
-                                    $hasTest ? ['type' => 'click', 'label' => 'Test Connection', 'wire:click' => 'testConnection(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-plug', 'permission' => 'vault.credential.view'] : null,
-                                    ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'deleteInstance(\'' . $groupKey . '\', \'' . $instance . '\')', 'icon' => 'lucide-trash-2', 'confirm' => 'Yakin ingin menghapus instance ini?', 'permission' => 'vault.credential.manage'],
+                                    ['type' => 'click', 'label' => 'Edit', 'wire:click' => 'openGroup(' . $instArgs . ')', 'modal' => 'vault-credential-form', 'icon' => 'lucide-pencil', 'permission' => 'vault.credential.view'],
+                                    $hasTest ? ['type' => 'click', 'label' => 'Test Connection', 'wire:click' => 'testConnection(' . $instArgs . ')', 'icon' => 'lucide-plug', 'permission' => 'vault.credential.view'] : null,
+                                    ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'deleteInstance(' . $instArgs . ')', 'icon' => 'lucide-trash-2', 'confirm' => 'Yakin ingin menghapus instance ini?', 'permission' => 'vault.credential.manage'],
                                 ])" />
                             </div>
                         @endforeach
@@ -107,35 +113,39 @@
                     $options = $fieldConfig['options'] ?? [];
                     $rows = $fieldConfig['rows'] ?? 6;
                 @endphp
-                <div>
+                @php
+                    // Audit keamanan 15 Oktober 2026 (T7): nilai tersimpan tidak
+                    // pernah dimuat ke isian. Field yang sudah tersimpan tampil
+                    // tersamar dan nilainya diminta lewat toggleReveal().
+                    $stored = ! empty($field['has_value']) && $type !== 'select';
+                    $maskedPlaceholder = $stored ? '•••••••• (tersimpan)' : $placeholder;
+                @endphp
+                <div wire:key="vault-field-{{ $editingGroup }}-{{ $editingInstance }}-{{ $key }}">
                     @if ($type === 'textarea')
                         <x-nawasara-ui::form.label :value="$label" />
                         <textarea
                             wire:model="fields.{{ $key }}.value"
-                            placeholder="{{ $placeholder }}"
+                            placeholder="{{ $maskedPlaceholder }}"
                             rows="{{ $rows }}"
                             class="py-3 px-4 block w-full border border-gray-300 rounded-md text-sm font-mono transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100"></textarea>
-                        @if (! empty($field['has_value']) && empty($field['value']))
-                            <p class="text-xs text-gray-400 mt-1">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
-                        @endif
                     @elseif ($type === 'password')
                         <x-nawasara-ui::form.label :value="$label" />
+                        {{-- Tombol mata di sini hanya memperlihatkan apa yang SEDANG
+                             diketik, bukan nilai tersimpan. --}}
                         <div class="relative" x-data="{ show: false }">
                             <input :type="show ? 'text' : 'password'"
                                 wire:model="fields.{{ $key }}.value"
-                                placeholder="{{ $placeholder ?: '••••••••' }}"
+                                placeholder="{{ $maskedPlaceholder ?: '••••••••' }}"
+                                autocomplete="new-password"
                                 class="py-3 px-4 pe-12 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100" />
                             <button type="button" @click="show = !show"
-                                aria-label="Tampilkan / sembunyikan password"
+                                aria-label="Tampilkan / sembunyikan isian"
                                 :title="show ? 'Sembunyikan' : 'Tampilkan'"
                                 class="absolute inset-y-0 end-0 flex items-center pe-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-neutral-300">
                                 <x-lucide-eye x-show="!show" class="size-4" />
                                 <x-lucide-eye-off x-show="show" class="size-4" x-cloak />
                             </button>
                         </div>
-                        @if (! empty($field['has_value']) && empty($field['value']))
-                            <p class="text-xs text-gray-400 mt-1">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
-                        @endif
                     @elseif ($type === 'select')
                         <x-nawasara-ui::form.label :value="$label" />
                         <x-nawasara-ui::form.select wire:model="fields.{{ $key }}.value" :placeholder="false">
@@ -146,8 +156,38 @@
                     @else
                         <x-nawasara-ui::form.input
                             :label="$label"
-                            :placeholder="$placeholder"
+                            :placeholder="$maskedPlaceholder"
                             wire:model="fields.{{ $key }}.value" />
+                    @endif
+
+                    @if ($stored)
+                        {{-- Nilai tersimpan datang dari event browser "vault-revealed"
+                             yang dikirim toggleReveal(), bukan dari properti Livewire,
+                             jadi tidak masuk snapshot. Ia hanya hidup di state Alpine
+                             dan hilang saat disembunyikan atau modal dibuka ulang. --}}
+                        <div class="mt-1 space-y-1"
+                            x-data="{ revealed: null, fieldKey: @js($key) }"
+                            x-on:vault-revealed.window="if ($event.detail.key === fieldKey) revealed = $event.detail.value"
+                            x-on:vault-revealed-clear.window="revealed = null">
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="text-xs text-gray-400 dark:text-neutral-500">Sudah tersimpan. Kosongkan jika tidak ingin mengubah.</p>
+                                @can('vault.credential.reveal')
+                                    <button type="button" x-show="revealed === null"
+                                        wire:click="toggleReveal(@js($key))"
+                                        wire:loading.attr="disabled" wire:target="toggleReveal"
+                                        class="shrink-0 inline-flex items-center gap-1 text-xs text-emerald-700 hover:underline dark:text-emerald-400">
+                                        <x-lucide-eye class="size-3.5" /> Tampilkan nilai tersimpan
+                                    </button>
+                                    <button type="button" x-show="revealed !== null" x-cloak
+                                        x-on:click="revealed = null"
+                                        class="shrink-0 inline-flex items-center gap-1 text-xs text-gray-600 hover:underline dark:text-neutral-300">
+                                        <x-lucide-eye-off class="size-3.5" /> Sembunyikan
+                                    </button>
+                                @endcan
+                            </div>
+                            <pre x-show="revealed !== null" x-cloak x-text="revealed"
+                                class="px-3 py-2 rounded-md text-xs font-mono whitespace-pre-wrap break-all bg-amber-50 text-gray-800 border border-amber-200 dark:bg-amber-900/30 dark:text-neutral-100 dark:border-amber-700"></pre>
+                        </div>
                     @endif
                 </div>
             @endforeach
