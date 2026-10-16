@@ -258,6 +258,10 @@ return [
                 'topic_wifi' => ['label' => 'Topik: WiFi Publik', 'type' => 'text', 'placeholder' => '7', 'optional' => true],
 
                 'topic_sertifikat' => ['label' => 'Topik: Sertifikat', 'type' => 'text', 'placeholder' => '8', 'optional' => true],
+
+                // Judol, obat ilegal, defacement, webshell-penyisip konten.
+                // Yang menangani pengelola situs OPD, bukan admin jaringan.
+                'topic_konten' => ['label' => 'Topik: Spam & Konten Ilegal', 'type' => 'text', 'placeholder' => '9', 'optional' => true],
             ],
         ],
 
