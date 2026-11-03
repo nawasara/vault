@@ -309,6 +309,29 @@ return [
             ],
         ],
 
+        // Pengirim email Akun Kisara (kode reset, kode verifikasi, peringatan
+        // keamanan): kisara@ponorogo.go.id di server email dinas Ryder. Grup
+        // terpisah dari `smtp` supaya email ke ASN tidak keluar dari akun
+        // pengirim panel. Belum lengkap = email Akun Kisara memakai `smtp`.
+        'smtp-kisara' => [
+            'label' => 'SMTP Email Kisara',
+            'icon' => 'lucide-mail',
+            'test' => \Nawasara\Notification\Channels\EmailChannel::class.'@testKisaraFromVault',
+            'fields' => [
+                'host' => ['label' => 'SMTP Host', 'type' => 'text', 'placeholder' => 'ryder.ponorogo.go.id'],
+                'port' => ['label' => 'SMTP Port', 'type' => 'text', 'placeholder' => '465'],
+                'encryption' => ['label' => 'Encryption', 'type' => 'select', 'options' => [
+                    'tls' => 'TLS (587)',
+                    'ssl' => 'SSL (465)',
+                    'none' => 'None (25)',
+                ]],
+                'username' => ['label' => 'Username', 'type' => 'text', 'placeholder' => 'kisara@ponorogo.go.id'],
+                'password' => ['label' => 'Password', 'type' => 'password'],
+                'from_address' => ['label' => 'From Address', 'type' => 'text', 'placeholder' => 'kisara@ponorogo.go.id'],
+                'from_name' => ['label' => 'From Name', 'type' => 'text', 'placeholder' => 'Akun Kisara', 'optional' => true],
+            ],
+        ],
+
         'wazuh' => [
             'label' => 'Wazuh SIEM',
             'icon' => 'lucide-shield',
