@@ -77,6 +77,15 @@ return [
                 // bila realm Anda memungkinkan. Kredensial ini membuka shell.
                 'console_user' => ['label' => 'Console User (opsional)', 'type' => 'text', 'placeholder' => 'root@pam', 'optional' => true],
                 'console_password' => ['label' => 'Console Password (opsional)', 'type' => 'password', 'optional' => true],
+
+                // Console container untuk PIC lewat Akun Kisara. Akun PVE
+                // terpisah dengan HANYA VM.Console di /vms (role
+                // KisaraConsole): bisa membuka console container, ditolak
+                // untuk shell node, konfigurasi, dan aksi daya. Jangan isi
+                // dengan root@pam — akun ini dipakai dari halaman yang dapat
+                // dibuka dari internet.
+                'kisara_console_user' => ['label' => 'Kisara Console User (opsional)', 'type' => 'text', 'placeholder' => 'kisara-console@pve', 'optional' => true],
+                'kisara_console_password' => ['label' => 'Kisara Console Password (opsional)', 'type' => 'password', 'optional' => true],
             ],
         ],
 
