@@ -121,7 +121,10 @@ return [
                 'ssh_host' => ['label' => 'SSH Host (opsional)', 'type' => 'text', 'placeholder' => 'kosongkan untuk pakai host WHM', 'optional' => true],
                 'ssh_port' => ['label' => 'SSH Port', 'type' => 'text', 'placeholder' => '22', 'optional' => true],
                 'ssh_user' => ['label' => 'SSH User', 'type' => 'text', 'placeholder' => 'root', 'optional' => true],
-                'ssh_key' => ['label' => 'SSH Private Key (PEM)', 'type' => 'textarea', 'rows' => 8, 'placeholder' => "-----BEGIN OPENSSH PRIVATE KEY-----\n...\n-----END OPENSSH PRIVATE KEY-----", 'optional' => true],
+                'ssh_key' => ['label' => 'SSH Private Key (PEM)', 'type' => 'textarea', 'rows' => 8, 'placeholder' => "Tempel isi kunci privat OpenSSH lengkap,\ntermasuk baris BEGIN dan END.", 'optional' => true],
+                // Not written as a literal key header on purpose: secret scanners
+                // (remote-test.sh, pre-commit) flag "-----BEGIN ... PRIVATE KEY-----"
+                // even in a placeholder, and this file ships with every checkout.
             ],
         ],
 
@@ -293,7 +296,7 @@ return [
                     'label' => 'Service Account (JSON)',
                     'type' => 'textarea',
                     'rows' => 10,
-                    'placeholder' => "{\n  \"type\": \"service_account\",\n  \"project_id\": \"...\",\n  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\n...\",\n  \"client_email\": \"...@....iam.gserviceaccount.com\"\n}",
+                    'placeholder' => "{\n  \"type\": \"service_account\",\n  \"project_id\": \"...\",\n  \"private_key\": \"(kunci privat dari berkas JSON)\",\n  \"client_email\": \"...@....iam.gserviceaccount.com\"\n}",
                 ],
             ],
             'multi_instance' => false,
@@ -397,6 +400,23 @@ return [
                 'username' => ['label' => 'Username', 'type' => 'text'],
                 'password' => ['label' => 'Password', 'type' => 'password'],
             ],
+        ],
+
+        // Kisara Workspace: Nawasara's ADMIN connection to the Workspace
+        // Nextcloud (provisioning, OPD folders, quotas). Workspace Web never
+        // uses it; it acts as the employee with their own token.
+        // base_url = internal address incl. /nc, e.g. http://10.1.1.37:8080/nc
+        // (port 8080 only accepts 10.1.1.30, which is where Nawasara runs).
+        'workspace' => [
+            'label' => 'Kisara Workspace (Nextcloud)',
+            'icon' => 'lucide-folder-open',
+            'test' => \Nawasara\Workspace\Services\NextcloudAdminClient::class.'@testConnection',
+            'fields' => [
+                'base_url' => ['label' => 'Base URL Nextcloud (dengan /nc)', 'type' => 'text', 'placeholder' => 'http://10.1.1.37:8080/nc'],
+                'admin_user' => ['label' => 'Akun admin', 'type' => 'text', 'placeholder' => 'kisara-admin'],
+                'app_password' => ['label' => 'App password (bukan sandi login)', 'type' => 'password'],
+            ],
+            'multi_instance' => false,
         ],
 
         'database-monitor' => [
